@@ -112,6 +112,9 @@ venv/
 # Secrets
 .env
 
+# AI Agents
+AGENTS.md
+
 # MLflow Tracking
 mlruns/
 mlflow.db
