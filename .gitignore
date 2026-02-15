@@ -118,3 +118,6 @@ AGENTS.md
 # MLflow Tracking
 mlruns/
 mlflow.db
+
+# Local Agent Instructions
+AGENTS.md
