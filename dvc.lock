@@ -1,0 +1,38 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: uv run python -m src.pipeline.stage_01_data_ingestion
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 169c8e92844bf648e3917e83731895bf
+      size: 1018
+    - path: config/params.yaml
+      hash: md5
+      md5: 521977fa5d51131dcaf00abdb67ee586
+      size: 165
+    - path: config/schema.yaml
+      hash: md5
+      md5: a9e1eaf36947b58c5d00bd8a53d0268e
+      size: 545
+    - path: data/external/NYC_Taxi_Zones_20260215.csv
+      hash: md5
+      md5: 9d4fe704d598a9a796f1b9f6dbfb6af3
+      size: 3753425
+    - path: data/raw/Distilled_2023_Yellow_Taxi_Trip_Data.txt
+      hash: md5
+      md5: f3d96a96c11c42b40593d7e81db7af16
+      size: 535356502
+    - path: src/components/data_ingestion.py
+      hash: md5
+      md5: 2611a17ae291851884cfebb178729bd2
+      size: 5266
+    - path: src/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: a83ccfc8c1c0a1546a708607e2ecd269
+      size: 1589
+    outs:
+    - path: artifacts/data_ingestion/enriched_trip_data.parquet
+      hash: md5
+      md5: 720206f5c3e20dd3834009faf342fa5d
+      size: 135203561

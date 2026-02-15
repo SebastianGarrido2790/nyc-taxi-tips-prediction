@@ -93,22 +93,24 @@ venv.bak/
 
 # --- MLOps & Project Specific ---
 
-# DVC - We commit .dvc files, but ignore the actual data/model files
-# Note: DVC usually manages its own .gitignore files in subfolders, 
-# but these global ignores provide a safety net.
-data/
-artifacts/
-models/*.pkl
-models/*.h5
-models/*.pt
+# DVC - We ignore the actual data/model/artifact files but track the .dvc markers
+data/**
+!data/**/.dvc
+artifacts/**
+!artifacts/**/.dvc
+models/**
+!models/**/.dvc
+logs/**
+!logs/**/.dvc
 
-# Vector Database Storage (Local ChromaDB persistence)
-chroma_db/
-*.chroma
+# Infrastructure & Tools
+.venv/
+venv/
+!venv/**/.dvc
+.ruff_cache/
 
-# Logs
-logs/
-*.log
+# Secrets
+.env
 
 # MLflow Tracking
 mlruns/

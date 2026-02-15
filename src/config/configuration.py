@@ -7,7 +7,7 @@ Pydantic entities, and ensures that the necessary artifact directories
 are created before any pipeline stage begins.
 """
 
-from src.constants import CONFIG_FILE_PATH, PARAMS_FILE_PATH
+from src.constants import CONFIG_FILE_PATH, PARAMS_FILE_PATH, SCHEMA_FILE_PATH
 from src.entity.config_entity import (
     DataIngestionConfig,
     DataTransformationConfig,
@@ -22,15 +22,16 @@ class ConfigurationManager:
     """
     Manages the lifecycle of project configurations.
 
-    This class centralizes the loading of 'config.yaml' and 'params.yaml'
-    and provides specialized methods to retrieve configuration objects
-    for each pipeline stage.
+    This class centralizes the loading of 'config.yaml', 'params.yaml',
+    and 'schema.yaml' and provides specialized methods to retrieve
+    configuration objects for each pipeline stage.
     """
 
     def __init__(
         self,
         config_filepath=CONFIG_FILE_PATH,
         params_filepath=PARAMS_FILE_PATH,
+        schema_filepath=SCHEMA_FILE_PATH,
     ):
         """
         Initializes the ConfigurationManager.
@@ -38,9 +39,11 @@ class ConfigurationManager:
         Args:
             config_filepath (Path): Path to the system configuration file.
             params_filepath (Path): Path to the model hyperparameters file.
+            schema_filepath (Path): Path to the data schema file.
         """
         self.config = read_yaml(config_filepath)
         self.params = read_yaml(params_filepath)
+        self.schema = read_yaml(schema_filepath)
 
         # Ensure the root artifacts directory exists immediately
         create_directories([self.config["artifacts_root"]])
@@ -57,9 +60,10 @@ class ConfigurationManager:
 
         return DataIngestionConfig(
             root_dir=config["root_dir"],
-            source_URL=config["source_URL"],
-            local_data_file=config["local_data_file"],
-            unzip_dir=config["unzip_dir"],
+            source_data_path=config["source_data_path"],
+            taxi_zones_path=config["taxi_zones_path"],
+            output_data_path=config["output_data_path"],
+            all_schema=self.schema,
         )
 
     def get_data_validation_config(self) -> DataValidationConfig:

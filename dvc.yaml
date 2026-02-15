@@ -1,0 +1,13 @@
+stages:
+  data_ingestion:
+    cmd: uv run python -m src.pipeline.stage_01_data_ingestion
+    deps:
+      - src/pipeline/stage_01_data_ingestion.py
+      - src/components/data_ingestion.py
+      - config/config.yaml
+      - config/params.yaml
+      - config/schema.yaml
+      - data/raw/Distilled_2023_Yellow_Taxi_Trip_Data.txt
+      - data/external/NYC_Taxi_Zones_20260215.csv
+    outs:
+      - artifacts/data_ingestion/enriched_trip_data.parquet

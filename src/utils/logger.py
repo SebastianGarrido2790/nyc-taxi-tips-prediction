@@ -74,8 +74,8 @@ def get_logger(name: str | None = None, headline: str | None = None) -> logging.
         # Add a visually distinct headline
         if headline:
             headline_text = (
-                f"========== START: {headline} "
-                f"({datetime.now():%Y-%m-%d %H:%M}) ==========\n"
+                f"========================= START: {headline} "
+                f"({datetime.now():%Y-%m-%d %H:%M}) =========================n"
             )
             with open(LOG_FILE, "a", encoding="utf-8") as f:
                 f.write(headline_text)

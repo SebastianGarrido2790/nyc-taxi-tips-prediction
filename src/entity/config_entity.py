@@ -17,15 +17,16 @@ class DataIngestionConfig(BaseModel):
 
     Attributes:
         root_dir (Path): Directory where ingestion artifacts are stored.
-        source_URL (str): The remote URL to download the raw dataset.
-        local_data_file (Path): Path where the downloaded file will be saved.
-        unzip_dir (Path): Directory where data will be extracted/prepared.
+        source_data_path (Path): Path to the raw distilled dataset.
+        taxi_zones_path (Path): Path to the taxi zones CSV.
+        output_data_path (Path): Path where the enriched Parquet file will be saved.
     """
 
     root_dir: Path
-    source_URL: str
-    local_data_file: Path
-    unzip_dir: Path
+    source_data_path: Path
+    taxi_zones_path: Path
+    output_data_path: Path
+    all_schema: dict
 
 
 class DataValidationConfig(BaseModel):
