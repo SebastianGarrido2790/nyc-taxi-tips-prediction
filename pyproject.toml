@@ -38,6 +38,7 @@ build-backend = "setuptools.build_meta"
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -49,7 +50,7 @@ select = [
 ]
 ignore = []
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["src"]
 
 [tool.mypy]

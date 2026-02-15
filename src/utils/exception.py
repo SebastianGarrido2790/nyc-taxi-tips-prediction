@@ -3,12 +3,15 @@ Custom exception handling for the project.
 
 This module defines a custom exception class that captures detailed error information,
 including the file name and line number where the exception occurred.
-This is critical for MLOps pipelines to quickly debug failures in automated workflows and prevent silent failures.
+This is critical for MLOps pipelines to quickly debug failures in automated
+workflows and prevent silent failures.
 
 Implementation details:
-- Captures Context: Automatically extracts the file name and line number where the error occurred.
+- Captures Context: Automatically extracts the file name and line number
+  where the error occurred.
 - Formatting: Wraps the error into a standardized string format for logs.
-- Strict Typing: Uses ModuleType instead of untyped sys imports to satisfy modern linters.
+- Strict Typing: Uses ModuleType instead of untyped sys imports
+  to satisfy modern linters.
 """
 
 from types import ModuleType
@@ -27,7 +30,8 @@ def error_message_detail(error: Exception | str, error_detail: ModuleType) -> st
     """
     _, _, exc_tb = error_detail.exc_info()
 
-    # Safety check to prevent crashes in edge cases where the traceback might be incomplete.
+    # Safety check to prevent crashes in edge cases where the traceback
+    # might be incomplete.
     if exc_tb is not None and exc_tb.tb_frame is not None:
         file_name = exc_tb.tb_frame.f_code.co_filename
         line_number = exc_tb.tb_lineno
@@ -54,7 +58,8 @@ class CustomException(Exception):
         Initialize the CustomException.
 
         Args:
-            error_message (Exception | str): The original error message or exception object.
+            error_message (Exception | str): The original error message
+                or exception object.
             error_detail (ModuleType): The sys module to capture stack trace.
         """
         # Generate the detailed message

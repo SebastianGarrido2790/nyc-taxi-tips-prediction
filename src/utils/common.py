@@ -7,11 +7,13 @@ ensure consistency across different pipeline stages.
 """
 
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import yaml
-from src.utils.logger import get_logger
+
 from src.utils.exception import CustomException
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -35,7 +37,7 @@ def read_yaml(path_to_yaml: Path) -> dict:
             logger.info(f"yaml file: {path_to_yaml} loaded successfully")
             return content
     except Exception as e:
-        raise CustomException(e, sys)
+        raise CustomException(e, sys) from e
 
 
 def create_directories(path_to_directories: list[Path | str], verbose: bool = True):

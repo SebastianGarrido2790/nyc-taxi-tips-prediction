@@ -7,15 +7,15 @@ Pydantic entities, and ensures that the necessary artifact directories
 are created before any pipeline stage begins.
 """
 
-from src.constants import *
-from src.utils.common import read_yaml, create_directories
+from src.constants import CONFIG_FILE_PATH, PARAMS_FILE_PATH
 from src.entity.config_entity import (
     DataIngestionConfig,
-    DataValidationConfig,
     DataTransformationConfig,
-    ModelTrainerConfig,
+    DataValidationConfig,
     ModelEvaluationConfig,
+    ModelTrainerConfig,
 )
+from src.utils.common import create_directories, read_yaml
 
 
 class ConfigurationManager:
@@ -28,7 +28,9 @@ class ConfigurationManager:
     """
 
     def __init__(
-        self, config_filepath=CONFIG_FILE_PATH, params_filepath=PARAMS_FILE_PATH
+        self,
+        config_filepath=CONFIG_FILE_PATH,
+        params_filepath=PARAMS_FILE_PATH,
     ):
         """
         Initializes the ConfigurationManager.
@@ -133,5 +135,8 @@ class ConfigurationManager:
             model_path=config["model_path"],
             all_params=params,
             metric_file_name=config["metric_file_name"],
-            mlflow_uri="https://dagshub.com/SebastianGarrido2790/nyc-taxi-tips-prediction.mlflow",
+            mlflow_uri=(
+                "https://dagshub.com/SebastianGarrido2790/"
+                "nyc-taxi-tips-prediction.mlflow"
+            ),
         )
