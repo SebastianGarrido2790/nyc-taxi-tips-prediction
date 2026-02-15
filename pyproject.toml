@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Production-grade MLOps system to predict NYC Yellow Taxi tip amounts using the FTI pattern."
 readme = "README.md"
 authors = [
-    { name = "Sebastian Garrido", email = "sebastian@example.com" }
+    { name = "Sebastian Garrido", email = "sebastiangarrido2790@gmail.com" }
 ]
 requires-python = ">=3.10"
 dependencies = [
