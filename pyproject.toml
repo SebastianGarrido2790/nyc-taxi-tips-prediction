@@ -1,0 +1,25 @@
+[project]
+name = "nyc-taxi-tips-prediction"
+version = "0.1.0"
+description = "MLOps system to predict NYC Yellow Taxi tip amounts using the FTI pattern."
+dependencies = [
+    "pandas",
+    "xgboost",
+    "scikit-learn",
+    "mlflow",
+    "pydantic",
+    "pydantic-settings",
+    "pyyaml",
+    "dvc",
+    "polars",
+    "matplotlib",
+    "seaborn",
+    "ipykernel",
+    "pytest",
+    "ruff"
+]
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
