@@ -12,6 +12,7 @@ from src.entity.config_entity import (
     DataIngestionConfig,
     DataTransformationConfig,
     DataValidationConfig,
+    FeatureEngineeringConfig,
     ModelEvaluationConfig,
     ModelTrainerConfig,
 )
@@ -98,7 +99,21 @@ class ConfigurationManager:
             data_path=config["data_path"],
         )
 
-    def get_model_trainer_config(self) -> ModelTrainerConfig:
+    def get_feature_engineering_config(self) -> FeatureEngineeringConfig:
+        """
+        Retrieves the configuration for the Feature Engineering stage.
+
+        Returns:
+            FeatureEngineeringConfig: Validated feature engineering configuration object.
+        """
+        config = self.config["feature_engineering"]
+        create_directories([config["root_dir"]])
+
+        return FeatureEngineeringConfig(
+            root_dir=config["root_dir"],
+            data_path=config["data_path"],
+        )
+
         """
         Retrieves the configuration for the Model Training stage.
 

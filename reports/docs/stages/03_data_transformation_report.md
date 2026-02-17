@@ -1,14 +1,14 @@
-# 03 Data Transformation Report: The "Pruning" System
+# 03 Data Transformation Report: The Cleaning System
 
 ## 1. Overview
-The Data Transformation stage is responsible for converting raw Trip Records into a training-ready Feature Set. It implements rigorous data "pruning" rules (imputation, dropping, and filtering) and executes the project's **Temporal Splitting Strategy** to ensure realistic model evaluation.
+The Data Transformation stage is dedicated to converting raw, enriched trip records into a clean, trustworthy dataset. It rigorously applies business logic to filter out anomalies, ensuring that downstream models are not trained on invalid transaction data (e.g., negative fares or impossible distances).
 
 ## 2. Architecture: The Conductor-Worker Pattern
-*   **Conductor (`src/pipeline/stage_03_data_transformation.py`)**: Manages ingestion output paths and triggers the transformation sequence.
-*   **Worker (`src/components/data_transformation.py`)**: Implements the technical cleaning logic and datetime-based splitting using **Polars**.
+*   **Conductor (`src/pipeline/stage_03_data_transformation.py`)**: Orchestrates the transformation job.
+*   **Worker (`src/components/data_transformation.py`)**: Uses **Polars** to execute high-performance cleaning and imputation tasks.
 
 ### Detailed Workflow Diagram
-The transformation stage is designed as a linear set of deterministic operations to maximize data quality:
+The transformation stage is a linear validation pipeline:
 
 ```mermaid
 flowchart TD
@@ -25,27 +25,21 @@ flowchart TD
     end
 
     subgraph Filtering_Phase [2. Physical Constraints]
-        G --> H[Remove Refunds: total_amount < 0]
-        H --> I[Cap Fares: total_amount > 1000]
-        I --> J[Distance Check: 0.5 < trip_distance < 100]
+        G --> H[Drop Rows with Any Negative Money]
+        H --> I[Filter Total Amount: $3.70 <= x <= $1000]
+        I --> J[Filter Distance: 0.5 < x < 100 miles]
     end
 
-    subgraph Feature_Prep [3. Temporal Splitting]
-        J --> K[Robust Date Parsing: strptime AM/PM]
-        K --> L[Split TRAIN: Months 1-5]
-        K --> M[Split TEST: Month 6]
-    end
-
-    subgraph Persistence [4. Output Generation]
-        L --> N[train.parquet]
-        M --> O[test.parquet]
+    subgraph Persistence [3. Output Generation]
+        J --> K[Robust Date Parsing]
+        K --> L[cleaned_trip_data.parquet]
     end
 ```
 
 ## 3. Why this is "Robust MLOps"
-*   **FTI Architecture Compliance**: This stage enforces the "Feature" boundary. By saving as Parquet, we maintain metadata integrity across the train/test split.
-*   **Temporal Integrity**: We avoid the common pitfall of random `train_test_split`. By training on the past (Jan-May) and testing on the future (June), we simulate how the model will perform on upcoming taxi trips.
-*   **Handling Ambiguous Dates**: The implementation uses strict string-to-datetime parsing (`strptime`) to handle complex 12-hour formats (AM/PM) that often break default automated loaders.
+*   **Garbage In, Garbage Out Prevention**: By enforcing strict physical constraints (e.g., minimum fare $3.70), we prevent the model from learning from refund transactions or system errors.
+*   **Standardized Output**: The stage produces a single, validated artifact (`cleaned_trip_data.parquet`) that serves as the "Gold Standard" dataset for all subsequent experiements.
+*   **Auditable Logic**: Every filtering decision is logged, providing transparency into how many records were dropped and why.
 
 ## 4. Key Implementation Details
 
@@ -62,24 +56,26 @@ flowchart TD
 - **Other**:
     • Store and Forward Flag (`store_and_fwd_flag`): This column was dropped entirely. An investigation revealed this flag merely indicated whether the trip record was held in vehicle memory before being sent to the vendor. It was determined to have zero impact on the tip amount, so the column was removed from the dataset.
 
-### 4.2. Filtering Guardrails
-The dataset is pruned of non-physical records:
-- **Refunds**: Rows with `total_amount < 0` are removed.
-- **Outliers**: Trips > 100 miles or Fares > $1000 are dropped to prevent gradient explosion in the XGBoost model.
+### 4.2. Rigorous Filtering Rules
+We apply strict "sanity checks" to the data:
+1.  **Start Date**: `tpep_pickup_datetime` >= `2023-01-01` (Ensure 2023 data only).
+2.  **Negative Value Check**: The dataset contains transactions with negative values, which were identified as refunds or errors where it appeared the passenger was charging the driver rather than paying for a service.
+    - Any record with a negative value in ANY financial column (fare, tax, tip, etc.) is dropped. This removes refunds and disputed charges retaining only the valid positive charges.
+3. **Total Amount**: This column (`total_amount`) contains significant anomalies at both the high and low ends, which can be handl using specific value filters.
+    - **The Anomalies**:
+        - **Low End**: The data showed minimum total amounts of $0, which is impossible given that the base fare for a customized cab is $3.00 before the meter even starts; anything less is inconsistent with NYC taxi rules.
+        - **High End**: The data contains extreme outliers, including a maximum total amount of approximately $386,000 for a single trip, which is unrealistic.
+    - **The Solution (Filters)**: To fix these entry errors, the following logic was applied to keep only reasonable transaction amounts:
+        - **Minimum Fare**: Filter the rows to keep only total amounts of at least `$3.70`. This figure was derived by adding the $3.00 base fare to the approximate cost of the minimum distance trip (0.5 miles).
+        - **Maximum Fare**: Filter the rows to keep only total amounts under `$1,000`. This threshold was chosen to be "extra generous" to accommodate large tips while removing the massive six-figure outliers or data entry errors.
+4.  **Trip Distance (Outliers)**: The data include extreme outliers, such as trips with 0 miles (likely stationary parking) and a trip of 350,000 miles (roughly 14 times the circumference of the Earth).
+    - **The Solution (Filters)**: To fix these entry errors, the following logic was applied to keep only realistic taxi trips: `0.5 miles < trip_distance < 100 miles`. Removes zero-distance trips (cancelled) and impossible long-distance errors.
 
 ### 4.3. Robust Date Parsing
-A critical fix was implemented to handle the source date format:
-```python
-df.with_columns(
-    pl.col("tpep_pickup_datetime")
-    .str.strptime(pl.Datetime, "%m/%d/%Y %I:%M:%S %p", strict=False)
-)
-```
-This ensures that the temporal split is accurate despite varied locale settings in the source data.
+We apply strict format parsing to handle AM/PM formats correctly, ensuring valid datetime objects for feature engineering.
 
 ## 5. Outputs
-- **Training Set**: `artifacts/data_transformation/train.parquet` (Jan-May 2023)
-- **Testing Set**: `artifacts/data_transformation/test.parquet` (June 2023)
+- **Cleaned Dataset**: `artifacts/data_transformation/cleaned_trip_data.parquet`
 
 ## 6. Reproducibility
 The stage is dependent on:

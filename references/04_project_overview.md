@@ -18,7 +18,7 @@ The solution is architected into three isolated pipelines to ensure modularity a
         * **Ingestion:** Handles 5M+ rows using chunking strategies to manage memory.
         * **Cleaning:** Implements domain-specific rules: filling `Airport_fee` with 0, setting `passenger_count` to 1 (default), and filtering anomalies (negative fares, trips > 100 miles).
         * **Engineering:** Converts timestamps into cyclical temporal features (Hour, Day, Month) to capture seasonality.
-    * **Output:** Versioned Parquet files stored in `data/processed/`.
+    * **Output:** Versioned Parquet files stored in `artifacts\data_transformation`.
 
 * **2. Training Pipeline (Model Development)**
     * **Objective:** Produce a high-performance predictive model without data leakage.
@@ -44,7 +44,7 @@ Here is the step-by-step implementation plan, mapping to the "FTI" (Feature, Tra
 **Goal:** Turn raw, messy logs into a clean, query-ready Feature Store.
 
 * **1.1 Setup & Config:** Initialize `dvc` and configure `src/config/configuration.py` to manage paths for `raw` vs `processed` data.
-* **1.2 Ingestion (The Heavy Lift):** Write a chunking mechanism (or use Polars) in `src/features/build_features.py` to load the 5M row CSV without crashing RAM.
+* **1.2 Ingestion (The Heavy Lift):** Write a chunking mechanism (or use Polars) in `src\components\feature_engineering.py` to load the 5M row CSV without crashing RAM.
 * **1.3 Cleaning - Imputation:** Implement logic to fill `NaN`s:
     * `Airport_fee` & `congestion_surcharge`  0.
     * `passenger_count`  1.
@@ -57,25 +57,25 @@ Here is the step-by-step implementation plan, mapping to the "FTI" (Feature, Tra
     * `pickup_hour` (0-23)
     * `day_of_week` (0-6)
     * `trip_duration_minutes` (calculated from dropoff - pickup).
-* **1.6 Storage:** Save the final dataframe as a compressed **Parquet** file in `data/processed/`.
+* **1.6 Storage:** Save the final dataframe as a compressed **Parquet** file in `artifacts\data_transformation`.
 
 #### 2. The Chef's Lab: Training Pipeline (Model Development)
 
 **Goal:** Create a mathematical representation of tipping behavior.
 
-* **2.1 Temporal Splitting:** In `src/models/train_model.py`, implement a time-based split (e.g., Train on Jan-May data, Validate on June data). **Strictly avoid random shuffling.**
+* **2.1 Temporal Splitting:** In `src/components/train_model.py`, with the time-based split implemented (e.g., Train on Jan-May data, Validate on June data). **Strictly avoid random shuffling.**
 * **2.2 Baseline creation:** Calculate the Mean Absolute Error (MAE) of a "dumb" model (always predicting the mean tip) to set a performance floor.
 * **2.3 Model Training:** Initialize and train an **XGBoost Regressor**  on the training set.
 * **2.4 Hyperparameter Tuning:** Configure `params.yaml` to control `max_depth`, `learning_rate`, and `n_estimators`.
 * **2.5 Evaluation:** Calculate RMSE and R-squared on the validation set.
 * **2.6 Interpretability:** Generate and save a "Feature Importance" plot to explain *why* the model makes certain predictions.
-* **2.7 Model Registry:** Save the trained model object (e.g., `xgb_model.json`) to the `models/` directory.
+* **2.7 Model Registry:** Save the trained model object (e.g., `xgb_model.json`) to the `artifacts/model_registry/` directory.
 
 #### 3. The Dinner Rush: Inference Pipeline (Serving)
 
 **Goal:** Serve predictions on new data using the frozen model.
 
-* **3.1 Batch Loader:** Create `src/models/predict_model.py` to load a "fresh" batch of data (simulating the latest taxi rides).
+* **3.1 Batch Loader:** Create `src/components/predict_model.py` to load a "fresh" batch of data (simulating the latest taxi rides).
 * **3.2 Model Loading:** Load the saved XGBoost artifact from the `models/` directory.
 * **3.3 Prediction:** Run the model on the fresh data to generate `predicted_tip`.
 * **3.4 Persistence:** Join predictions with `VendorID` and save the results to `artifacts/predictions/inference_results.csv` for analysis.
@@ -112,6 +112,7 @@ The project utilizes a "Boring Technology" stack—prioritizing reliability and 
 2. **Reproducible Pipeline:** A `dvc.yaml` configuration allowing any engineer to reproduce results via `dvc repro`.
 3. **Model Artifact:** A trained, versioned XGBoost model.
 4. **Insight Report:** A "Feature Importance" analysis ranking the factors that most strongly influence tipping behavior.
+5. **UI Dashboard:** A Streamlit dashboard to visualize the data and model predictions.
 
 ---
 

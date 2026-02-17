@@ -41,9 +41,9 @@ class DataTransformation:
         - Dropping:
           - store_and_fwd_flag (irrelevant)
         - Filtering:
-          - total_amount >= 0 (Remove refunds)
-          - total_amount <= 1000 (Remove outliers)
-          - 0.5 < trip_distance < 100 (Remove invalid distances)
+          - Negative Values: Drop row if ANY financial column < 0
+          - Trip Distance: 0.5 < x < 100 miles
+          - Total Amount: $3.70 <= x <= $1000
 
         Args:
             df (pl.DataFrame): Input DataFrame.
@@ -71,16 +71,34 @@ class DataTransformation:
         logger.info("Applied basic imputation rules.")
 
         # 3. Filtering
-        # Construct integer masks for filtering
-        # Refund Check: total_amount >= 0
-        # Outlier Check: total_amount <= 1000
-        # Distance Check: 0.5 < trip_distance < 100
+        # Financial columns to check for negatives
+        financial_cols = [
+            "fare_amount",
+            "extra",
+            "mta_tax",
+            "tip_amount",
+            "tolls_amount",
+            "improvement_surcharge",
+            "total_amount",
+            "congestion_surcharge",
+            "airport_fee",
+        ]
+
+        # Ensure we only check columns that exist in the dataframe
+        existing_financial_cols = [c for c in financial_cols if c in df.columns]
+
+        # Construct filter mask
+        # 1. No negative values in ANY financial column
+        non_negative_mask = pl.all_horizontal(
+            [pl.col(c) >= 0 for c in existing_financial_cols]
+        )
 
         filter_mask = (
-            (pl.col("total_amount") >= 0)
-            & (pl.col("total_amount") <= 1000)
+            non_negative_mask
             & (pl.col("trip_distance") > 0.5)
             & (pl.col("trip_distance") < 100)
+            & (pl.col("total_amount") >= 3.70)
+            & (pl.col("total_amount") <= 1000)
         )
 
         df_cleaned = df.filter(filter_mask)
@@ -101,8 +119,8 @@ class DataTransformation:
         Executes the data transformation pipeline:
         1. Loads enriched data.
         2. Cleans and filters data.
-        3. Splits data temporally (Jan-May: Train, June: Test).
-        4. Saves train and test sets as Parquet.
+        3. Parses datetime columns.
+        4. Saves cleaned data as Parquet.
 
         Raises:
             CustomException: If transformation fails.
@@ -120,11 +138,7 @@ class DataTransformation:
             # 1. Clean Data
             df = self._clean_data(df)
 
-            # 2. Temporal Splitting
-            # Train: Jan - May 2023
-            # Test: June 2023
-            # We need to parse tpep_pickup_datetime to extract month
-
+            # 2. Robust Date Parsing
             # Ensure datetime type using precise format (e.g., "08/16/2023 05:24:41 PM")
             df = df.with_columns(
                 pl.col("tpep_pickup_datetime").str.strptime(
@@ -141,35 +155,10 @@ class DataTransformation:
                     f"Dropped {initial_rows - final_rows} rows due to datetime parsing failures."
                 )
 
-            logger.info("Splitting data temporally (Train: Jan-May, Test: Jun)...")
-
-            train_df = df.filter(
-                (pl.col("tpep_pickup_datetime").dt.month().is_between(1, 5))
-            )
-            test_df = df.filter((pl.col("tpep_pickup_datetime").dt.month() == 6))
-
-            logger.info(f"Train Set Shape: {train_df.shape}")
-            logger.info(f"Test Set Shape: {test_df.shape}")
-
-            # Simple validation to ensure we have data
-            if train_df.is_empty():
-                logger.warning(
-                    "Train set is empty! Check filtering logic or date range."
-                )
-            if test_df.is_empty():
-                logger.warning(
-                    "Test set is empty! Check filtering logic or date range."
-                )
-
-            # 3. Save Artifacts
-            train_path = self.config.root_dir / "train.parquet"
-            test_path = self.config.root_dir / "test.parquet"
-
-            logger.info(f"Saving train data to {train_path}")
-            train_df.write_parquet(train_path)
-
-            logger.info(f"Saving test data to {test_path}")
-            test_df.write_parquet(test_path)
+            # 3. Save Artifact
+            output_path = self.config.root_dir / "cleaned_trip_data.parquet"
+            logger.info(f"Saving cleaned data to {output_path}")
+            df.write_parquet(output_path)
 
             logger.info("Data Transformation completed successfully.")
 

@@ -1,4 +1,4 @@
-Project-Name
+NYC Yellow Taxi Tip Prediction System
 ├── LICENSE.txt                <- Project's license (Open-source if one is chosen)
 ├── README.md                  <- The top-level README for developers using this project
 ├── .env                       <- Environment variables
@@ -12,7 +12,7 @@ Project-Name
 │   ├── config.yaml            <- System paths (artifacts/data)
 │   └── params.yaml            <- Hyperparameters (K-neighbors, Chunk size)
 │
-├── artifacts/                 <- Generated artifacts
+├── artifacts/                 <- Generated artifacts (models, metrics, transformed data, serialized models, etc.)
 │
 ├── .github/
 │   └── workflows/             <- CI/CD (main.yaml)
@@ -23,13 +23,9 @@ Project-Name
 │
 ├── data/
 │   ├── external               <- Data from third party sources
-│   ├── interim                <- Intermediate data that has been transformed
-│   ├── processed              <- The final, canonical data sets for modeling
 │   └── raw                    <- The original, immutable data dump
 │
 ├── logs/                      <- Logs of the pipeline execution
-│
-├── models/                    <- Trained and serialized models, model predictions, or model summaries
 │
 ├── notebooks/                 <- Jupyter notebooks
 │
@@ -53,9 +49,6 @@ Project-Name
     │
     ├── entity/                     <- Data entities
     │   └── config_entity.py        <- Dataclass entity definitions
-    │
-    ├── features/                   <- Feature engineering
-    │   └── build_features.py       <- Code to create features for modeling
     │
     ├── models/
     │   ├── predict_model.py        <- Code to run model inference with trained models          

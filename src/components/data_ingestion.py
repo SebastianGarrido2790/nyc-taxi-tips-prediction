@@ -7,9 +7,7 @@ it with reference data (taxi zones) to produce an enriched dataset.
 """
 
 import sys
-
 import polars as pl
-
 from src.entity.config_entity import DataIngestionConfig
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger

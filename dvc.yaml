@@ -31,6 +31,17 @@ stages:
       - config/config.yaml
       - artifacts/data_ingestion/enriched_trip_data.parquet
     outs:
-      - artifacts/data_transformation/train.parquet
-      - artifacts/data_transformation/test.parquet
+      - artifacts/data_transformation/cleaned_trip_data.parquet
+
+  feature_engineering:
+    cmd: uv run python -m src.pipeline.stage_04_feature_engineering
+    deps:
+      - src/pipeline/stage_04_feature_engineering.py
+      - src/components/feature_engineering.py
+      - config/config.yaml
+      - artifacts/data_transformation/cleaned_trip_data.parquet
+    outs:
+      - artifacts/feature_engineering/train.parquet
+      - artifacts/feature_engineering/val.parquet
+      - artifacts/feature_engineering/test.parquet
 

@@ -57,6 +57,19 @@ class DataTransformationConfig(BaseModel):
     data_path: Path
 
 
+class FeatureEngineeringConfig(BaseModel):
+    """
+    Configuration for the feature engineering stage.
+
+    Attributes:
+        root_dir (Path): Directory where engineered features are saved.
+        data_path (Path): Path to the cleaned input data.
+    """
+
+    root_dir: Path
+    data_path: Path
+
+
 class ModelTrainerConfig(BaseModel):
     """
     Configuration for the model training stage, including hyperparameters.

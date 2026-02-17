@@ -5,8 +5,8 @@ stages:
     deps:
     - path: config/config.yaml
       hash: md5
-      md5: fd12eee976d4ac60737b20d0f4cea05f
-      size: 1046
+      md5: 3f5d5a87e8e77712e789526da5548118
+      size: 1183
     - path: config/params.yaml
       hash: md5
       md5: 521977fa5d51131dcaf00abdb67ee586
@@ -45,20 +45,20 @@ stages:
       size: 135203561
     - path: config/config.yaml
       hash: md5
-      md5: fd12eee976d4ac60737b20d0f4cea05f
-      size: 1046
+      md5: 3f5d5a87e8e77712e789526da5548118
+      size: 1183
     - path: config/schema.yaml
       hash: md5
       md5: a9e1eaf36947b58c5d00bd8a53d0268e
       size: 545
     - path: src/components/data_validation.py
       hash: md5
-      md5: f985c18cc7988aeb233afa5321f5ab27
-      size: 3193
+      md5: 4b80f6f12b764315f176213c424aac99
+      size: 3189
     - path: src/pipeline/stage_02_data_validation.py
       hash: md5
-      md5: 4a5531fe8a8faf1883dab1463cbdbba0
-      size: 1328
+      md5: 5ecb8a24557772bb873d9522d4e30528
+      size: 1326
     outs:
     - path: artifacts/data_validation/status.txt
       hash: md5
@@ -73,22 +73,50 @@ stages:
       size: 135203561
     - path: config/config.yaml
       hash: md5
-      md5: fd12eee976d4ac60737b20d0f4cea05f
-      size: 1046
+      md5: 3f5d5a87e8e77712e789526da5548118
+      size: 1183
     - path: src/components/data_transformation.py
       hash: md5
-      md5: 450b8ad3fdb9270240622c31d001d7d3
-      size: 6303
+      md5: 525249ca95cd5d4aa44b7a561b118cc3
+      size: 5674
     - path: src/pipeline/stage_03_data_transformation.py
       hash: md5
-      md5: 6c4dc7e24d881c37838b07f7012d0ba6
-      size: 1485
+      md5: 38d6015b2e328b84fedef78422e1ed6a
+      size: 1483
     outs:
-    - path: artifacts/data_transformation/test.parquet
+    - path: artifacts/data_transformation/cleaned_trip_data.parquet
       hash: md5
-      md5: 17cb4cd4bbf6b6d833caeedb98b9d535
-      size: 10172025
-    - path: artifacts/data_transformation/train.parquet
+      md5: 2d46fb6ef4be0c6e4718a90eee0fe471
+      size: 123396262
+  feature_engineering:
+    cmd: uv run python -m src.pipeline.stage_04_feature_engineering
+    deps:
+    - path: artifacts/data_transformation/cleaned_trip_data.parquet
       hash: md5
-      md5: 5ede0c0b8e47458359316e9976999f76
-      size: 51349249
+      md5: 2d46fb6ef4be0c6e4718a90eee0fe471
+      size: 123396262
+    - path: config/config.yaml
+      hash: md5
+      md5: 3f5d5a87e8e77712e789526da5548118
+      size: 1183
+    - path: src/components/feature_engineering.py
+      hash: md5
+      md5: 74e2b9ab630baed7fcaacddc9ce9847a
+      size: 5335
+    - path: src/pipeline/stage_04_feature_engineering.py
+      hash: md5
+      md5: c1717a0f4436a6b100786e8240087a00
+      size: 1483
+    outs:
+    - path: artifacts/feature_engineering/test.parquet
+      hash: md5
+      md5: 5c2430c03ae278382703ab7f60fc46a3
+      size: 26311026
+    - path: artifacts/feature_engineering/train.parquet
+      hash: md5
+      md5: 63a0835a3739ef3ddf404520348a0e54
+      size: 109256448
+    - path: artifacts/feature_engineering/val.parquet
+      hash: md5
+      md5: e1d0381f95067803c18abeee04cf634b
+      size: 24960666
