@@ -11,3 +11,26 @@ stages:
       - data/external/NYC_Taxi_Zones_20260215.csv
     outs:
       - artifacts/data_ingestion/enriched_trip_data.parquet
+
+  data_validation:
+    cmd: uv run python -m src.pipeline.stage_02_data_validation
+    deps:
+      - src/pipeline/stage_02_data_validation.py
+      - src/components/data_validation.py
+      - config/config.yaml
+      - config/schema.yaml
+      - artifacts/data_ingestion/enriched_trip_data.parquet
+    outs:
+      - artifacts/data_validation/status.txt
+
+  data_transformation:
+    cmd: uv run python -m src.pipeline.stage_03_data_transformation
+    deps:
+      - src/pipeline/stage_03_data_transformation.py
+      - src/components/data_transformation.py
+      - config/config.yaml
+      - artifacts/data_ingestion/enriched_trip_data.parquet
+    outs:
+      - artifacts/data_transformation/train.parquet
+      - artifacts/data_transformation/test.parquet
+

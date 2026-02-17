@@ -7,7 +7,6 @@ presence before the pipeline begins execution, preventing runtime attribute erro
 """
 
 from pathlib import Path
-
 from pydantic import BaseModel
 
 
@@ -42,6 +41,7 @@ class DataValidationConfig(BaseModel):
     root_dir: Path
     STATUS_FILE: str
     unzip_dir: Path
+    all_schema: dict
 
 
 class DataTransformationConfig(BaseModel):

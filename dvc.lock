@@ -5,8 +5,8 @@ stages:
     deps:
     - path: config/config.yaml
       hash: md5
-      md5: 169c8e92844bf648e3917e83731895bf
-      size: 1018
+      md5: fd12eee976d4ac60737b20d0f4cea05f
+      size: 1046
     - path: config/params.yaml
       hash: md5
       md5: 521977fa5d51131dcaf00abdb67ee586
@@ -36,3 +36,59 @@ stages:
       hash: md5
       md5: 720206f5c3e20dd3834009faf342fa5d
       size: 135203561
+  data_validation:
+    cmd: uv run python -m src.pipeline.stage_02_data_validation
+    deps:
+    - path: artifacts/data_ingestion/enriched_trip_data.parquet
+      hash: md5
+      md5: 720206f5c3e20dd3834009faf342fa5d
+      size: 135203561
+    - path: config/config.yaml
+      hash: md5
+      md5: fd12eee976d4ac60737b20d0f4cea05f
+      size: 1046
+    - path: config/schema.yaml
+      hash: md5
+      md5: a9e1eaf36947b58c5d00bd8a53d0268e
+      size: 545
+    - path: src/components/data_validation.py
+      hash: md5
+      md5: f985c18cc7988aeb233afa5321f5ab27
+      size: 3193
+    - path: src/pipeline/stage_02_data_validation.py
+      hash: md5
+      md5: 4a5531fe8a8faf1883dab1463cbdbba0
+      size: 1328
+    outs:
+    - path: artifacts/data_validation/status.txt
+      hash: md5
+      md5: 86e6a2f694c57a675b3e2da6b95ff9ba
+      size: 23
+  data_transformation:
+    cmd: uv run python -m src.pipeline.stage_03_data_transformation
+    deps:
+    - path: artifacts/data_ingestion/enriched_trip_data.parquet
+      hash: md5
+      md5: 720206f5c3e20dd3834009faf342fa5d
+      size: 135203561
+    - path: config/config.yaml
+      hash: md5
+      md5: fd12eee976d4ac60737b20d0f4cea05f
+      size: 1046
+    - path: src/components/data_transformation.py
+      hash: md5
+      md5: 450b8ad3fdb9270240622c31d001d7d3
+      size: 6303
+    - path: src/pipeline/stage_03_data_transformation.py
+      hash: md5
+      md5: 6c4dc7e24d881c37838b07f7012d0ba6
+      size: 1485
+    outs:
+    - path: artifacts/data_transformation/test.parquet
+      hash: md5
+      md5: 17cb4cd4bbf6b6d833caeedb98b9d535
+      size: 10172025
+    - path: artifacts/data_transformation/train.parquet
+      hash: md5
+      md5: 5ede0c0b8e47458359316e9976999f76
+      size: 51349249

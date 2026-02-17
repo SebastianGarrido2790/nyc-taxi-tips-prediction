@@ -80,6 +80,7 @@ class ConfigurationManager:
             root_dir=config["root_dir"],
             STATUS_FILE=config["STATUS_FILE"],
             unzip_dir=config["unzip_dir"],
+            all_schema=self.schema,
         )
 
     def get_data_transformation_config(self) -> DataTransformationConfig:

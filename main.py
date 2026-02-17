@@ -9,18 +9,32 @@ Usage:
 """
 
 import sys
-
 from src.pipeline.stage_01_data_ingestion import DataIngestionTrainingPipeline
+from src.pipeline.stage_02_data_validation import DataValidationTrainingPipeline
+from src.pipeline.stage_03_data_transformation import DataTransformationTrainingPipeline
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger
 
-STAGE_NAME = "Data Ingestion"
 logger = get_logger(__name__, headline="main.py")
 
 try:
+    STAGE_NAME = "Data Ingestion"
     logger.info(f"🚀 Stage: {STAGE_NAME} started 🚀")
     data_ingestion = DataIngestionTrainingPipeline()
     data_ingestion.main()
     logger.info(f"✅ Stage: {STAGE_NAME} completed ✅")
+
+    STAGE_NAME = "Data Validation"
+    logger.info(f"🚀 Stage: {STAGE_NAME} started 🚀")
+    data_validation = DataValidationTrainingPipeline()
+    data_validation.main()
+    logger.info(f"✅ Stage: {STAGE_NAME} completed ✅")
+
+    STAGE_NAME = "Data Transformation"
+    logger.info(f"🚀 Stage: {STAGE_NAME} started 🚀")
+    data_transformation = DataTransformationTrainingPipeline()
+    data_transformation.main()
+    logger.info(f"✅ Stage: {STAGE_NAME} completed ✅")
+
 except Exception as e:
     raise CustomException(e, sys) from e
