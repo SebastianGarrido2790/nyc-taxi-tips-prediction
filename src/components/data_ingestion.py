@@ -60,6 +60,41 @@ class DataIngestion:
 
         return polars_schema
 
+    def _merge_taxi_zones(
+        self, trips_df: pl.DataFrame, zones_df: pl.DataFrame
+    ) -> pl.DataFrame:
+        """
+        Merges taxi zone information into the trip DataFrame.
+
+        Logic:
+        - Joins with PU LocationID -> PU_Borough, PU_Zone
+        - Joins with DO LocationID -> DO_Borough, DO_Zone
+
+        Args:
+            trips_df (pl.DataFrame): Trip data with 'PULocationID' and 'DOLocationID'.
+            zones_df (pl.DataFrame): Zones data with 'LocationID', 'Borough', 'Zone'.
+
+        Returns:
+            pl.DataFrame: Enriched DataFrame.
+        """
+        logger.info("Enriching with Pickup Location metadata...")
+        trips_df = trips_df.join(
+            zones_df,
+            left_on="PULocationID",
+            right_on="LocationID",
+            how="left",
+        ).rename({"Borough": "PU_Borough", "Zone": "PU_Zone"})
+
+        logger.info("Enriching with Dropoff Location metadata...")
+        trips_df = trips_df.join(
+            zones_df,
+            left_on="DOLocationID",
+            right_on="LocationID",
+            how="left",
+        ).rename({"Borough": "DO_Borough", "Zone": "DO_Zone"})
+
+        return trips_df
+
     def initiate_data_ingestion(self) -> None:
         """
         Executes the data ingestion process:
@@ -117,15 +152,7 @@ class DataIngestion:
             ).unique(subset=["LocationID"], keep="first")
 
             # 3. Join logic
-            logger.info("Enriching with Pickup Location metadata...")
-            trips_df = trips_df.join(
-                zones_lookup, left_on="PULocationID", right_on="LocationID", how="left"
-            ).rename({"Borough": "PU_Borough", "Zone": "PU_Zone"})
-
-            logger.info("Enriching with Dropoff Location metadata...")
-            trips_df = trips_df.join(
-                zones_lookup, left_on="DOLocationID", right_on="LocationID", how="left"
-            ).rename({"Borough": "DO_Borough", "Zone": "DO_Zone"})
+            trips_df = self._merge_taxi_zones(trips_df, zones_lookup)
 
             # 4. Save as Parquet
             output_file_path = self.config.output_data_path

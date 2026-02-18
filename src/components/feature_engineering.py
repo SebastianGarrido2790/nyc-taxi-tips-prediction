@@ -84,6 +84,35 @@ class FeatureEngineering:
         logger.info("Cyclical features created successfully.")
         return df
 
+    def _split_data(
+        self, df: pl.DataFrame
+    ) -> tuple[pl.DataFrame, pl.DataFrame, pl.DataFrame]:
+        """
+        Splits data into Train, Validation, and Test sets based on months.
+
+        Args:
+            df (pl.DataFrame): Input DataFrame with 'pickup_month'.
+
+        Returns:
+            tuple: (train_df, val_df, test_df)
+        """
+        logger.info("Splitting data (Train: Jan-Aug, Val: Sept-Oct, Test: Nov-Dec)...")
+
+        train_df = df.filter(pl.col("pickup_month").is_between(1, 8))
+        val_df = df.filter(pl.col("pickup_month").is_between(9, 10))
+        test_df = df.filter(pl.col("pickup_month").is_between(11, 12))
+
+        logger.info(f"Train Set: {train_df.shape}")
+        logger.info(f"Val Set:   {val_df.shape}")
+        logger.info(f"Test Set:  {test_df.shape}")
+
+        if train_df.is_empty() or val_df.is_empty() or test_df.is_empty():
+            logger.warning(
+                "One of the splits is empty! Check date ranges in source data."
+            )
+
+        return train_df, val_df, test_df
+
     def initiate_feature_engineering(self) -> None:
         """
         Executes the feature engineering pipeline:
@@ -109,26 +138,7 @@ class FeatureEngineering:
             df = self._create_cyclical_features(df)
 
             # 2. Temporal Splitting
-            # Train: Jan - Aug (Months 1-8)
-            # Val: Sept - Oct (Months 9-10)
-            # Test: Nov - Dec (Months 11-12)
-
-            logger.info(
-                "Splitting data (Train: Jan-Aug, Val: Sept-Oct, Test: Nov-Dec)..."
-            )
-
-            train_df = df.filter(pl.col("pickup_month").is_between(1, 8))
-            val_df = df.filter(pl.col("pickup_month").is_between(9, 10))
-            test_df = df.filter(pl.col("pickup_month").is_between(11, 12))
-
-            logger.info(f"Train Set: {train_df.shape}")
-            logger.info(f"Val Set:   {val_df.shape}")
-            logger.info(f"Test Set:  {test_df.shape}")
-
-            if train_df.is_empty() or val_df.is_empty() or test_df.is_empty():
-                logger.warning(
-                    "One of the splits is empty! Check date ranges in source data."
-                )
+            train_df, val_df, test_df = self._split_data(df)
 
             # 3. Save Artifacts
             train_path = self.config.root_dir / "train.parquet"

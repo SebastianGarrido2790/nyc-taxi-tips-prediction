@@ -1,0 +1,90 @@
+# Test Suite Report (Data Pipeline)
+
+## 1. Overview
+The testing strategy for the NYC Taxi Tips Prediction pipeline is built on the principles set for this project: Test logic, not libraries.
+We employ a robust unit testing suite using `pytest` to verify the deterministic behavior of our data cleaning and feature engineering components.
+
+## 2. Test Suite Structure
+
+The testing directory mirrors the source code structure for intuitive navigation:
+
+```
+tests/
+├── conftest.py          # Global Shared Fixtures (Sample Data)
+└── unit/                # Component-level Logic Tests
+    ├── test_data_ingestion.py
+    ├── test_data_transformation.py
+    └── test_feature_engineering.py
+```
+
+## 3. Testing Architecture
+
+**NOTE**: We won't test Data Validation (`src/components/data_validation.py`) logic. Why? It is mostly a wrapper around standard Polars functionality.
+
+    - The Logic: It checks if columns exist (if col in df.columns).
+    - The Risk: Low. The risk is mostly in configuring the schema.yaml incorrectly, not in the Python code that reads it.
+    - Recommendation: This is better covered by an integration test (or just running the pipeline) rather than a unit test, as you'd mostly be testing that polars.columns works, which we know it does.
+
+### 3.1 Fixtures (`tests/conftest.py`)
+To ensure tests are fast and isolated, we use `polars` DataFrame fixtures instead of reading from disk.
+
+*   `sample_trip_data`: A small DataFrame containing specific "trap" rows designed to trigger cleaning rules (e.g., negative fares, zero distance, null fees).
+*   `cleaned_trip_data`: A DataFrame spanning all 12 months of 2023 to verify temporal splitting logic.
+
+### 3.2 Unit Tests (`tests/unit/`)
+
+#### 3.2.1 Data Ingestion Tests (`tests/unit/test_data_ingestion.py`)
+This suite validates the joining logic that enriches trip data with taxi zones.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_merge_taxi_zones` | Mock trip data joined with mock zone data. | Ensure location enrichment works correctly (Left Join). |
+
+#### 3.2.2 Data Transformation Tests (`tests/unit/test_data_transformation.py`)
+This suite validates the "Pruning" system.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_initial_imputation` | Checks if `airport_fee`, `congestion_surcharge` are filled with 0, and `passenger_count` defaults to 1. | Verify data completeness. |
+| `test_colum_dropping` | Checks if `store_and_fwd_flag` is removed. | Verify schema reduction. |
+| `test_filtering_refunds` | Checks if rows with negative `total_amount` are dropped. | Prevent "Refund Layout" (garbage in). |
+| `test_filtering_outliers_distance` | Checks if trips < 0.5 miles or > 100 miles are removed. | Remove physical impossibilities. |
+| `test_filtering_outliers_amount` | Checks if fares > $1000 are removed. | Remove data entry errors. |
+| `test_data_consistency` | Verifies the output is a valid Polars DataFrame and rows were actually dropped. | Sanity check. |
+
+#### 3.2.3 Feature Engineering Tests (`tests/unit/test_feature_engineering.py`)
+This suite validates the "Brain" preparation logic.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_feature_engineering_transforms` | Checks if Sine/Cosine features are created for Hour, Day, Month and are within range [-1, 1]. | Verify cyclical encoding math. |
+| `test_temporal_splitting` | Injects 12-month data and verifies correct assignment to Train (Jan-Aug), Val (Sept-Oct), Test (Nov-Dec). | **CRITICAL**: Prevent Data Leakage. |
+| `test_feature_columns_consistency` | Checks if allexpected feature columns exist in the output. | ensure downstream model has all inputs. |
+
+## 4. Execution
+To run the full suite:
+```bash
+uv run pytest tests/
+```
+
+## 5. Test Coverage
+*   **Components Covered**: `DataTransformation`, `FeatureEngineering`.
+*   **Logic Covered**: 100% of critical logic (cleaning rules + split strategy).
+*   **Integration**: Not covered by unit tests (handled by `dvc repro`).
+
+## 6. Output
+```bash
+uv run pytest tests/
+=================================== test session starts ===================================
+platform win32 -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\sebas\Desktop\nyc-taxi-tips-prediction
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hydra-core-1.3.2
+collected 10 items                                                                          
+
+tests\unit\test_data_ingestion.py .                                                  [ 10%] 
+tests\unit\test_data_transformation.py ......                                        [ 70%]
+tests\unit\test_feature_engineering.py ...                                           [100%]
+
+=================================== 10 passed in 0.49s ==================================== 
+```

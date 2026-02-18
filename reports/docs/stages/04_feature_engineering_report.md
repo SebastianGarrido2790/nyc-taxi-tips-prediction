@@ -77,3 +77,10 @@ To realistically evaluate our model, we simulate a production environment where 
 ## 5. Scaling & Performance
 *   **Polars**: All transformations are vectorized and executed in Polars, allowing for processing millions of rows in seconds.
 *   **Parquet**: Data is saved in columnar format to optimize I/O for the subsequent training stage.
+
+## 6. Refactoring for Testability (Unit Testing)
+To enable robust unit testing without needing the full dataset, the `FeatureEngineering` component was refactored to decouple logic from I/O.
+
+*   **Extraction of `_split_data`**: The temporal splitting logic for Train/Val/Test sets was moved from the main `initiate_feature_engineering` method into a separate, pure function `_split_data(df)`.
+*   **Why**: This allows unit tests to inject a small, in-memory DataFrame (Fixture) into `_split_data` and verify that rows are correctly assigned to Train, Validation, or Test sets based on their month, without needing to mock file systems or read Parquet files.
+
