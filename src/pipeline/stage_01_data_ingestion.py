@@ -6,14 +6,13 @@ management and calls the technical components to perform the work.
 """
 
 import sys
-
 from src.components.data_ingestion import DataIngestion
 from src.config.configuration import ConfigurationManager
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Data Ingestion"
-logger = get_logger(__name__)
+logger = get_logger(__name__, headline="Stage: Data Ingestion")
 
 
 class DataIngestionTrainingPipeline:
@@ -25,16 +24,14 @@ class DataIngestionTrainingPipeline:
         """
         Initializes the pipeline stage.
         """
-        self.stage_name = "Data Ingestion Stage"
+        self.config = ConfigurationManager()
 
     def main(self) -> None:
         """
         Executes the main orchestration logic for the ingestion stage.
         """
         try:
-            config_manager = ConfigurationManager()
-            data_ingestion_config = config_manager.get_data_ingestion_config()
-
+            data_ingestion_config = self.config.get_data_ingestion_config()
             data_ingestion = DataIngestion(config=data_ingestion_config)
             data_ingestion.initiate_data_ingestion()
 
@@ -44,10 +41,10 @@ class DataIngestionTrainingPipeline:
 
 if __name__ == "__main__":
     try:
-        logger.info(f"🚀 Stage: {STAGE_NAME} started 🚀")
+        logger.info(f">>>>>> {STAGE_NAME} started <<<<<<<")
         obj = DataIngestionTrainingPipeline()
         obj.main()
-        logger.info(f"✅ Stage: {STAGE_NAME} completed ✅")
+        logger.info(f">>>>>> {STAGE_NAME} completed <<<<<<<")
     except Exception as e:
         logger.exception(e)
         raise e

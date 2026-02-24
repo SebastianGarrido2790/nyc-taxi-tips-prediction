@@ -76,10 +76,11 @@ Here is the step-by-step implementation plan, mapping to the "FTI" (Feature, Tra
 
 #### 3. The Dinner Rush: Inference Pipeline (Serving)
 
-**Goal:** Serve predictions on new data using the frozen model.
+**Goal:** Serve predictions on new data using the frozen model and the MLFlow Model Registered.
 
 * **3.1 Batch Loader:** Create `src/components/predict_model.py` to load a "fresh" batch of data (simulating the latest taxi rides).
-* **3.2 Model Loading:** Load the saved XGBoost artifact from the `models/` directory.
+* **3.2 Model Loading:** Load the saved model artifact from the `models/` directory.
+* **3.2.1 Model Loading:** Load the MLFlow Model Registered.
 * **3.3 Prediction:** Run the model on the fresh data to generate `predicted_tip`.
 * **3.4 Persistence:** Join predictions with `VendorID` and save the results to `artifacts/predictions/inference_results.csv` for analysis.
 

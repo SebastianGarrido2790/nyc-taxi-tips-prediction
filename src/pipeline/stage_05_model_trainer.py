@@ -12,27 +12,27 @@ from src.utils.exception import CustomException
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Model Training"
-logger = get_logger(__name__)
+logger = get_logger(__name__, headline="Stage: Model Training")
 
 
 class ModelTrainerPipeline:
     """
-    Pipeline stage for Model Training.
+    Orchestrates the model training stage.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the pipeline stage.
         """
         self.config = ConfigurationManager()
 
-    def main(self):
+    def main(self) -> None:
         """
-        Executes the model training stage.
+        Executes the model training stage logic for the model trainer.
         """
         try:
-            train_config = self.config.get_model_trainer_config()
-            model_trainer = ModelTrainer(config=train_config)
+            model_trainer_config = self.config.get_model_trainer_config()
+            model_trainer = ModelTrainer(config=model_trainer_config)
             model_trainer.train_and_register()
 
         except Exception as e:
@@ -41,10 +41,10 @@ class ModelTrainerPipeline:
 
 if __name__ == "__main__":
     try:
-        logger.info(f"Stage {STAGE_NAME} started")
+        logger.info(f">>>>>> {STAGE_NAME} started <<<<<<<")
         obj = ModelTrainerPipeline()
         obj.main()
-        logger.info(f"Stage {STAGE_NAME} completed")
+        logger.info(f">>>>>> {STAGE_NAME} completed <<<<<<<")
     except Exception as e:
         logger.exception(e)
         raise e

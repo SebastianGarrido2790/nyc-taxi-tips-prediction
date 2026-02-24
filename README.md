@@ -2,7 +2,7 @@
 
 A production-grade MLOps system to predict NYC Yellow Taxi tip amounts using the **FTI (Feature, Training, Inference)** pattern.
 
-## 🚀 Overview
+##  Overview
 
 This system decouples data engineering, model development, and model serving into distinct, independently operational pipelines:
 

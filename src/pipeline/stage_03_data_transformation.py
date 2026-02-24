@@ -12,7 +12,7 @@ from src.utils.exception import CustomException
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Data Transformation"
-logger = get_logger(__name__)
+logger = get_logger(__name__, headline="Stage: Data Transformation")
 
 
 class DataTransformationTrainingPipeline:
@@ -20,19 +20,19 @@ class DataTransformationTrainingPipeline:
     Orchestrates the data transformation stage.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the pipeline stage.
         """
         self.config = ConfigurationManager()
 
-    def main(self):
+    def main(self) -> None:
         """
-        Executes the main orchestration logic.
+        Executes the main orchestration logic for the transformation stage.
         """
         try:
-            config = self.config.get_data_transformation_config()
-            data_transformation = DataTransformation(config=config)
+            data_transformation_config = self.config.get_data_transformation_config()
+            data_transformation = DataTransformation(config=data_transformation_config)
             data_transformation.initiate_data_transformation()
 
         except Exception as e:
@@ -41,10 +41,10 @@ class DataTransformationTrainingPipeline:
 
 if __name__ == "__main__":
     try:
-        logger.info(f"🚀 Stage: {STAGE_NAME} started 🚀")
+        logger.info(f">>>>>> {STAGE_NAME} started <<<<<<<")
         obj = DataTransformationTrainingPipeline()
         obj.main()
-        logger.info(f"✅ Stage: {STAGE_NAME} completed ✅")
+        logger.info(f">>>>>> {STAGE_NAME} completed <<<<<<<")
     except Exception as e:
         logger.exception(e)
         raise e

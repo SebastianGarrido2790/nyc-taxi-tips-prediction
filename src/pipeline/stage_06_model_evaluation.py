@@ -14,13 +14,12 @@ from src.utils.logger import get_logger, log_spacer
 from src.utils.exception import CustomException
 
 logger = get_logger(__name__, headline="Stage: Model Evaluation")
-
 STAGE_NAME = "Model Evaluation"
 
 
 class ModelEvaluationPipeline:
     """
-    Pipeline for executing Model Evaluation and Inference Simulation.
+    Orchestrates the Model Evaluation and Inference Simulation stages.
     """
 
     def __init__(self):
@@ -55,10 +54,10 @@ class ModelEvaluationPipeline:
 
 if __name__ == "__main__":
     try:
-        logger.info(f"Stage: {STAGE_NAME} started")
+        logger.info(f">>>>>> {STAGE_NAME} started <<<<<<<")
         pipeline = ModelEvaluationPipeline()
         pipeline.main()
-        logger.info(f"Stage: {STAGE_NAME} completed!")
+        logger.info(f">>>>>> {STAGE_NAME} completed <<<<<<<")
     except Exception as e:
         logger.exception("Exception occurred during execution:")
         raise CustomException(e, sys) from e
