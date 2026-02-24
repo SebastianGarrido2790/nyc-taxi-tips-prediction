@@ -15,6 +15,7 @@ import pandas as pd
 import json
 import joblib
 import plotly.express as px
+import yaml
 from pathlib import Path
 
 # Set page config
@@ -75,6 +76,7 @@ ARTIFACTS_DIR = Path("artifacts")
 METRICS_PATH = ARTIFACTS_DIR / "model_evaluation" / "metrics.json"
 PREDICTIONS_PATH = ARTIFACTS_DIR / "predictions" / "inference_results.csv"
 MODEL_DIR = ARTIFACTS_DIR / "model_trainer"
+PARAMS_PATH = Path("config") / "params.yaml"
 
 
 # --- Cached Data Loading Functions ---
@@ -118,14 +120,29 @@ def load_model():
     return joblib.load(model_path), model_path.stem
 
 
+@st.cache_data
+def load_params():
+    """
+    Loads the parameters (YAML) to extract selection metrics.
+    Returns None if the file does not exist.
+    """
+    if not PARAMS_PATH.exists():
+        return None
+    with open(PARAMS_PATH, "r") as f:
+        return yaml.safe_load(f)
+
+
 # --- Load Artifacts ---
 metrics = load_metrics()
 predictions_df = load_predictions()
 model, model_name = load_model()
+params = load_params()
 
 # --- Main App Layout ---
-st.title(f"🚕 NYC Taxi Tips Predictor ({model_name})")
-st.markdown("*A production-ready FTI architecture serving XGBoost predictions.*")
+st.title("🚕 NYC Taxi Tips Predictor & Analyst")
+st.markdown(
+    f"*A production-ready FTI architecture serving ({model_name} model) predictions.*"
+)
 
 if model is None or metrics is None or predictions_df is None:
     st.error(
@@ -135,7 +152,7 @@ if model is None or metrics is None or predictions_df is None:
 
 # --- Sidebar ---
 st.sidebar.image(
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/NYC_Taxi_Logo.svg/1200px-NYC_Taxi_Logo.svg.png",
+    "reports/figures/nyc_taxi_logo.jpg",
     width=150,
 )
 st.sidebar.markdown("---")
@@ -166,6 +183,16 @@ if page == "📊 Dashboard & Evaluation":
         delta_color="normal",
     )
     col3.metric("Test MSE (Mean Squared Error)", f"{val_mse:.4f}")
+
+    if params and "Training" in params and "selection_metrics" in params["Training"]:
+        selection_metrics = params["Training"]["selection_metrics"]
+        weights_str = "   |   ".join(
+            [f"**{k.upper()}**: {v}" for k, v in selection_metrics.items()]
+        )
+        st.info(
+            f"**🏆 Champion Selection Weights:**   {weights_str}  *(Models are scored and ranked automatically based on these parameters)*",
+            icon="⚖️",
+        )
 
     st.markdown("---")
 
