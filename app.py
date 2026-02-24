@@ -16,8 +16,8 @@ import json
 import joblib
 import plotly.express as px
 import yaml
-import numpy as np
 from pathlib import Path
+from src.utils.model_utils import get_feature_importances
 
 # Set page config
 st.set_page_config(
@@ -207,27 +207,8 @@ if page == "📊 Dashboard & Evaluation":
         st.subheader("Feature Importance")
         st.markdown("What drives tipping behavior?")
 
-        # Extract feature importance safely
-        current_model = model
-        feature_names = None
-        importances = None
-
-        # Try to get from XGBoost or Random Forest
-        if hasattr(current_model, "feature_importances_") and hasattr(
-            current_model, "feature_names_in_"
-        ):
-            importances = current_model.feature_importances_
-            feature_names = current_model.feature_names_in_
-        elif hasattr(current_model, "coef_") and hasattr(
-            current_model, "feature_names_in_"
-        ):
-            importances = np.abs(current_model.coef_)
-            feature_names = current_model.feature_names_in_
-        elif hasattr(current_model, "get_booster"):  # direct XGBoost
-            booster = current_model.get_booster()
-            importance_map = booster.get_score(importance_type="gain")
-            feature_names = list(importance_map.keys())
-            importances = list(importance_map.values())
+        # Extract feature importance safely from dedicated utility
+        feature_names, importances = get_feature_importances(model)
 
         if importances is not None and feature_names is not None:
             feat_df = pd.DataFrame(
