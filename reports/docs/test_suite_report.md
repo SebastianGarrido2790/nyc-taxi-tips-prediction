@@ -14,7 +14,8 @@ tests/
 └── unit/                # Component-level Logic Tests
     ├── test_data_ingestion.py
     ├── test_data_transformation.py
-    └── test_feature_engineering.py
+    ├── test_feature_engineering.py
+    └── test_model_trainer.py
 ```
 
 ## 3. Testing Architecture
@@ -61,6 +62,16 @@ This suite validates the "Brain" preparation logic.
 | `test_temporal_splitting` | Injects 12-month data and verifies correct assignment to Train (Jan-Aug), Val (Sept-Oct), Test (Nov-Dec). | **CRITICAL**: Prevent Data Leakage. |
 | `test_feature_columns_consistency` | Checks if allexpected feature columns exist in the output. | ensure downstream model has all inputs. |
 
+#### 3.2.4 Model Trainer Tests (`tests/unit/test_model_trainer.py`)
+This suite validates the model training, prediction, and evaluation logic.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_model_training` | Verifies that a model can be trained without errors and returns a valid model object. | Ensure training process is stable. |
+| `test_model_prediction` | Checks if the trained model can make predictions on new data and outputs valid tip percentages. | Validate prediction functionality. |
+| `test_model_evaluation` | Ensures evaluation metrics (e.g., RMSE) are calculated correctly and within expected bounds. | Verify model performance assessment. |
+| `test_model_persistence` | Tests if the model can be saved and loaded correctly, maintaining its state and prediction capability. | Ensure model deployability. |
+
 ## 4. Execution
 To run the full suite:
 ```bash
@@ -68,8 +79,8 @@ uv run pytest tests/
 ```
 
 ## 5. Test Coverage
-*   **Components Covered**: `DataTransformation`, `FeatureEngineering`.
-*   **Logic Covered**: 100% of critical logic (cleaning rules + split strategy).
+*   **Components Covered**: `DataIngestion`, `DataTransformation`, `FeatureEngineering`, `ModelTrainer`.
+*   **Logic Covered**: 100% of critical logic (cleaning rules, split strategy, weighted model choice, model training/evaluation).
 *   **Integration**: Not covered by unit tests (handled by `dvc repro`).
 
 ## 6. Output
@@ -80,11 +91,12 @@ platform win32 -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0
 rootdir: C:\Users\sebas\Desktop\nyc-taxi-tips-prediction
 configfile: pyproject.toml
 plugins: anyio-4.12.1, hydra-core-1.3.2
-collected 10 items                                                                          
+collected 14 items                                                                          
 
-tests\unit\test_data_ingestion.py .                                                  [ 10%] 
-tests\unit\test_data_transformation.py ......                                        [ 70%]
-tests\unit\test_feature_engineering.py ...                                           [100%]
+tests\unit\test_data_ingestion.py .                                                  [  7%] 
+tests\unit\test_data_transformation.py ......                                        [ 50%] 
+tests\unit\test_feature_engineering.py ...                                           [ 71%] 
+tests\unit\test_model_trainer.py ....                                                [100%]
 
-=================================== 10 passed in 0.49s ==================================== 
+=================================== 14 passed in 5.65s ==================================== 
 ```
