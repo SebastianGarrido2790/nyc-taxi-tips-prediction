@@ -45,6 +45,29 @@ The system strictly enforces the temporal data split design. The model selection
 ### 3.2. Decoupled Inference (FTI Pattern)
 As dictated by the architectural requirements, the inference prediction logic (`PredictModel`) is completely decoupled from the data engineering and training phases. In a live production environment, this module simply wakes up alongside a cron job or an Airflow trigger, fetches the latest incoming trip parameters, loads the registered artifact from MLflow or local storage, and pushes the outputs to the business layers.
 
+### 3.3. Production MLflow Model Registry Loading
+While the current simulation can load the model from the local disk path (`artifacts/model_trainer/model.joblib`), a true production environment leverages the **MLflow Model Registry**. 
+
+To seamlessly fetch the latest registered production "Champion" model via MLflow (`nyc-taxi-tips-champion`), you can use the following approach without needing hardcoded paths:
+
+```python
+import mlflow.pyfunc
+
+# Set your tracking URI to the remote server
+mlflow.set_tracking_uri("https://dagshub.com/SebastianGarrido2790/nyc-taxi-tips-prediction.mlflow")
+
+model_name = "nyc-taxi-tips-champion"
+# You can specify "latest", "Production", "Staging", or a specific version like "1"
+model_version = "latest"
+
+# Dynamically load the model from the registry
+model = mlflow.pyfunc.load_model(f"models:/{model_name}/{model_version}")
+
+# Perform predictions identically
+predictions = model.predict(X_batch_processed)
+```
+This enables seamless model updates—once a better model passes stage 5 and is registered, inference jobs will automatically pull the updated version without code changes.
+
 ## 4. Performance Metrics (Test Set)
 
 Upon executing the pipeline, the champion model yielded the following final test metrics:
