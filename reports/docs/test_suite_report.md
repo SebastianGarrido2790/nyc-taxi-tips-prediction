@@ -15,7 +15,9 @@ tests/
     ├── test_data_ingestion.py
     ├── test_data_transformation.py
     ├── test_feature_engineering.py
-    └── test_model_trainer.py
+    ├── test_model_evaluation.py
+    ├── test_model_trainer.py
+    └── test_predict_model.py
 ```
 
 ## 3. Testing Architecture
@@ -72,6 +74,23 @@ This suite validates the model training, prediction, and evaluation logic.
 | `test_model_evaluation` | Ensures evaluation metrics (e.g., RMSE) are calculated correctly and within expected bounds. | Verify model performance assessment. |
 | `test_model_persistence` | Tests if the model can be saved and loaded correctly, maintaining its state and prediction capability. | Ensure model deployability. |
 
+#### 3.2.5 Model Evaluation Tests (`tests/unit/test_model_evaluation.py`)
+This suite validates the test-set evaluation and MLflow logging logic on unseen data.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_model_evaluation_initialization` | Verifies correct property extraction from the `ModelEvaluationConfig`. | Ensure correct file paths and MLflow URIs. |
+| `test_evaluate_workflow` | Mocks the MLflow API, Joblib, and Pandas to assert that predictions correctly filter out `tip_amount`, produce valid shapes, calculate metrics, save local JSON files, and log to MLflow successfully. | Isolate the evaluation logic from the physical IO boundary to cleanly guarantee workflow adherence. |
+
+#### 3.2.6 Predict Model Tests (`tests/unit/test_predict_model.py`)
+This suite validates the batch inference behavior mirroring production systems.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_predict_model_initialization` | Checks configuration bindings. | Validate object state. |
+| `test_predict_model_inference_with_target` | Ingests data that unintentionally contains `tip_amount` and confirms it is dropped before inference. Validates `VendorID` passes through properly. | Check robustness against unexpected evaluation metadata. |
+| `test_predict_model_inference_production_data` | Simulates a pure production string without `tip_amount` or `VendorID`, asserting predictions successfully output to CSV. | Ensure proper functioning of the batch prediction component in real-world FTI environment. |
+
 ## 4. Execution
 To run the full suite:
 ```bash
@@ -86,17 +105,19 @@ uv run pytest tests/
 ## 6. Output
 ```bash
 uv run pytest tests/
-=================================== test session starts ===================================
+============================= test session starts =============================
 platform win32 -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0
 rootdir: C:\Users\sebas\Desktop\nyc-taxi-tips-prediction
 configfile: pyproject.toml
 plugins: anyio-4.12.1, hydra-core-1.3.2
-collected 14 items                                                                          
+collected 19 items
 
-tests\unit\test_data_ingestion.py .                                                  [  7%] 
-tests\unit\test_data_transformation.py ......                                        [ 50%] 
-tests\unit\test_feature_engineering.py ...                                           [ 71%] 
-tests\unit\test_model_trainer.py ....                                                [100%]
+tests\unit\test_data_ingestion.py .                                      [  5%]
+tests\unit\test_data_transformation.py ......                            [ 36%]
+tests\unit\test_feature_engineering.py ...                               [ 52%]
+tests\unit\test_model_evaluation.py ..                                   [ 63%]
+tests\unit\test_model_trainer.py ....                                    [ 84%]
+tests\unit\test_predict_model.py ...                                     [100%]
 
-=================================== 14 passed in 5.65s ==================================== 
+============================= 19 passed in 10.22s ==============================
 ```
