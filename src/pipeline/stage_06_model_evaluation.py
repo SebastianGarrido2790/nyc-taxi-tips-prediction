@@ -35,6 +35,8 @@ class ModelEvaluationPipeline:
             config = ConfigurationManager()
             model_eval_config = config.get_model_evaluation_config()
 
+            log_spacer()
+
             # Step 1: Evaluate model against Test Dataset
             logger.info("Starting Model Evaluation on Test set...")
             model_eval = ModelEvaluation(config=model_eval_config)
@@ -53,12 +55,10 @@ class ModelEvaluationPipeline:
 
 if __name__ == "__main__":
     try:
-        logger.info(f">>>>>> Stage: {STAGE_NAME} started <<<<<<")
+        logger.info(f"Stage: {STAGE_NAME} started")
         pipeline = ModelEvaluationPipeline()
         pipeline.main()
-        logger.info(
-            f">>>>>> Stage: {STAGE_NAME} completed! <<<<<<\n\n======================="
-        )
+        logger.info(f"Stage: {STAGE_NAME} completed!")
     except Exception as e:
         logger.exception("Exception occurred during execution:")
         raise CustomException(e, sys) from e

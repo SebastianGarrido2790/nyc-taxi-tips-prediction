@@ -7,10 +7,8 @@ generating predictions using the champion model, and saving the results.
 
 import sys
 from pathlib import Path
-
 import joblib
 import pandas as pd
-
 from src.entity.config_entity import ModelEvaluationConfig
 from src.utils.common import create_directories
 from src.utils.exception import CustomException
@@ -63,7 +61,7 @@ class PredictModel:
             X_batch_processed = X_batch.select_dtypes(include=["number"])
 
             # Load the model directly from local system
-            # Note: Production systems might load from MLflow Model Registry like:
+            # NOTE: Production systems might load from MLflow Model Registry like:
             # import mlflow.pyfunc
             # model_name = "nyc-taxi-tips-champion"
             # model_version = "latest"

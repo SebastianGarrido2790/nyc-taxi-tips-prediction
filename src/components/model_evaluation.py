@@ -8,12 +8,10 @@ the metrics locally.
 
 import sys
 from pathlib import Path
-
 import joblib
 import mlflow
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
 from src.entity.config_entity import ModelEvaluationConfig
 from src.utils.common import save_json
 from src.utils.exception import CustomException

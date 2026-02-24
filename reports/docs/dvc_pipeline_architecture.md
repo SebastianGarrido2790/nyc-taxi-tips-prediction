@@ -44,11 +44,18 @@ flowchart TD
         M --> N[Champion Model.joblib]
     end
 
+    subgraph Stage_06 [6. Model Evaluation]
+        L & N --> O((Run Model Evaluation))
+        O --> P[Inference Results CSV]
+        O --> Q[Metrics JSON]
+    end
+
     style C fill:#f9f,stroke:#333
     style E fill:#f9f,stroke:#333
     style G fill:#f9f,stroke:#333
     style I fill:#f9f,stroke:#333
     style M fill:#f9f,stroke:#333
+    style O fill:#f9f,stroke:#333
 ```
 
 ## 3. Detailed Stage Breakdown
@@ -95,6 +102,17 @@ flowchart TD
     *   `artifacts/model_trainer/model.joblib` (Best Model)
 *   **Tracking**: Integrated with **MLflow** for experiment tracking and model registration.
 *   **Dependency**: `src/components/model_trainer.py`.
+
+### 3.6 Model Evaluation (`stage_06_model_evaluation`)
+*   **Input**: Test Set (`.parquet`) and Champion Model (`.joblib`).
+*   **Logic**:
+    *   **Evaluation**: Calculates MAE, MSE, and R² against the hold-out test set to get final real-world performance metrics.
+    *   **Inference**: Generates predictions on the test set, simulating a batch incoming data load.
+*   **Outputs**:
+    *   `artifacts/predictions/inference_results.csv`
+    *   `artifacts/model_evaluation/metrics.json`
+*   **Tracking**: Test metrics logged directly to the MLflow experiment.
+*   **Dependency**: `src/components/model_evaluation.py`, `src/components/predict_model.py`.
 
 ## 4. Execution
 To reproduce the entire pipeline (or only what changed):
