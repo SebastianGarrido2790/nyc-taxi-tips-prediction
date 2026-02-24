@@ -14,6 +14,7 @@ from src.pipeline.stage_02_data_validation import DataValidationTrainingPipeline
 from src.pipeline.stage_03_data_transformation import DataTransformationTrainingPipeline
 from src.pipeline.stage_04_feature_engineering import FeatureEngineeringTrainingPipeline
 from src.pipeline.stage_05_model_trainer import ModelTrainerPipeline
+from src.pipeline.stage_06_model_evaluation import ModelEvaluationPipeline
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger, log_spacer
 
@@ -54,7 +55,13 @@ try:
     model_trainer = ModelTrainerPipeline()
     model_trainer.main()
     logger.info(f"Stage: {STAGE_NAME} completed")
+    log_spacer()
 
+    STAGE_NAME = "Model Evaluation"
+    logger.info(f"Stage: {STAGE_NAME} started")
+    model_evaluation = ModelEvaluationPipeline()
+    model_evaluation.main()
+    logger.info(f"Stage: {STAGE_NAME} completed")
 
 except Exception as e:
     raise CustomException(e, sys) from e

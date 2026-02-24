@@ -57,3 +57,19 @@ stages:
     outs:
       - artifacts/model_trainer/model.joblib
 
+  model_evaluation:
+    cmd: uv run python -m src.pipeline.stage_06_model_evaluation
+    deps:
+      - src/pipeline/stage_06_model_evaluation.py
+      - src/components/model_evaluation.py
+      - src/components/predict_model.py
+      - config/config.yaml
+      - config/params.yaml
+      - artifacts/feature_engineering/test.parquet
+      - artifacts/model_trainer/model.joblib
+    outs:
+      - artifacts/predictions/inference_results.csv
+    metrics:
+      - artifacts/model_evaluation/metrics.json:
+          cache: false
+
