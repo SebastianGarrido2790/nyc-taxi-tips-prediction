@@ -42,6 +42,18 @@ stages:
       - artifacts/data_transformation/cleaned_trip_data.parquet
     outs:
       - artifacts/feature_engineering/train.parquet
-      - artifacts/feature_engineering/val.parquet
       - artifacts/feature_engineering/test.parquet
+      - artifacts/feature_engineering/val.parquet
+
+  model_trainer:
+    cmd: uv run python -m src.pipeline.stage_05_model_trainer
+    deps:
+      - src/pipeline/stage_05_model_trainer.py
+      - src/components/model_trainer.py
+      - config/config.yaml
+      - config/params.yaml
+      - artifacts/feature_engineering/train.parquet
+      - artifacts/feature_engineering/test.parquet
+    outs:
+      - artifacts/model_trainer/model.joblib
 

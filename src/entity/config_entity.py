@@ -72,34 +72,24 @@ class FeatureEngineeringConfig(BaseModel):
 
 class ModelTrainerConfig(BaseModel):
     """
-    Configuration for the model training stage, including hyperparameters.
+    Configuration for the model training stage, including candidates.
 
     Attributes:
-        root_dir (Path): Directory where the trained model artifact is saved.
+        root_dir (Path): Directory where model artifacts are saved.
         train_data_path (Path): Path to the training dataset.
-        test_data_path (Path): Path to the testing dataset.
-        model_name (str): Filename for the saved model (e.g., model.joblib).
-        n_estimators (int): Number of boosting rounds for XGBoost.
-        max_depth (int): Maximum tree depth for XGBoost.
-        learning_rate (float): Step size shrinkage used in update to prevent
-            overfitting.
-        subsample (float): Fraction of observations to be randomly sampled per tree.
-        colsample_bytree (float): Fraction of columns to be randomly sampled per tree.
-        objective (str): Learning task objective (e.g., reg:squarederror).
-        random_state (int): Seed for reproducibility.
+        model_name (str): Filename for the saved champion model.
+        all_params (dict): Dictionary containing hyperparameters for all candidate models.
+        mlflow_uri (str): URI for the MLflow tracking server.
     """
 
     root_dir: Path
     train_data_path: Path
-    test_data_path: Path
+    val_data_path: Path
     model_name: str
-    n_estimators: int
-    max_depth: int
-    learning_rate: float
-    subsample: float
-    colsample_bytree: float
-    objective: str
-    random_state: int
+    all_params: dict
+    mlflow_uri: str
+    subsample_fraction: float
+    selection_metrics: dict
 
 
 class ModelEvaluationConfig(BaseModel):

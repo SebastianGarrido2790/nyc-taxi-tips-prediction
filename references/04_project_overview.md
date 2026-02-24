@@ -21,12 +21,12 @@ The solution is architected into three isolated pipelines to ensure modularity a
     * **Output:** Versioned Parquet files stored in `artifacts\data_transformation`.
 
 * **2. Training Pipeline (Model Development)**
-    * **Objective:** Produce a high-performance predictive model without data leakage.
+    * **Objective:** Produce a high-performance predictive model using a multi-model benchmarking approach.
     * **Key Logic:**
-        * **Splitting:** Utilizes **Temporal Splitting** (e.g., Train: Jan-May, Test: June) rather than random shuffling to respect the time-series nature of the data.
-        * **Algorithm:** Trains an **XGBoost Regressor**, optimized for tabular data performance.
-    * **Evaluation:** Benchmarks against a "Mean Absolute Error" (MAE) baseline and optimizes for Mean Squared Error (MSE).
-    * **Output:** A versioned model artifact saved to the **Model Registry**.
+        * **Splitting:** Utilizes **Temporal Splitting** (e.g., Train: Jan-Aug, Val: Sept-Oct, Test: Nov-Dec) rather than random shuffling to respect the time-series nature of the data.
+        * **Algorithm Benchmarking:** Evaluates multiple candidate models including **ElasticNet**, **Ridge**, **RandomForest**, **XGBoost**, and **Gradient Boosting**.
+    * **Evaluation:** Benchmarks all candidates against a "Dummy Mean" baseline using MAE, MSE, and R2 metrics via **MLflow**.
+    * **Output:** The champion model is identified and saved to the **MLflow Model Registry**.
 
 * **3. Inference Pipeline (Model Serving)**
     * **Objective:** Generate predictions on new data batches.
@@ -44,32 +44,35 @@ Here is the step-by-step implementation plan, mapping to the "FTI" (Feature, Tra
 **Goal:** Turn raw, messy logs into a clean, query-ready Feature Store.
 
 * **1.1 Setup & Config:** Initialize `dvc` and configure `src/config/configuration.py` to manage paths for `raw` vs `processed` data.
-* **1.2 Ingestion (The Heavy Lift):** Write a chunking mechanism (or use Polars) in `src\components\feature_engineering.py` to load the 5M row CSV without crashing RAM.
+* **1.2 Ingestion (The Heavy Lift):** Write a chunking mechanism (or use Polars) in `src\components\data_ingestion.py` to load the 5M row CSV without crashing RAM.
 * **1.3 Cleaning - Imputation:** Implement logic to fill `NaN`s:
     * `Airport_fee` & `congestion_surcharge`  0.
     * `passenger_count`  1.
     * `RatecodeID`  99 (Unknown).
-* **1.4 Cleaning - Filtering:**
+* **1.4 Validation:**
+    * Validate the cleaned data to ensure that it meets the requirements of the feature engineering pipeline.
+* **1.5 Cleaning - Filtering:**
     * Remove "Refunds" (negative `total_amount`).
     * Filter unrealistic trips: `0.5 miles < distance < 100 miles`.
     * Cap outliers: `total_amount < $1000`.
-* **1.5 Feature Engineering:** Transform `tpep_pickup_datetime` into cyclical features:
+* **1.6 Save Cleaned Data:** Save the cleaned dataframe as a compressed **Parquet** file in `artifacts\data_transformation`.
+* **1.7 Feature Engineering:** Transform `tpep_pickup_datetime` into cyclical features:
     * `pickup_hour` (0-23)
     * `day_of_week` (0-6)
     * `trip_duration_minutes` (calculated from dropoff - pickup).
-* **1.6 Storage:** Save the final dataframe as a compressed **Parquet** file in `artifacts\data_transformation`.
+* **1.8 Storage:** Save the final dataframe, with the time-based split implemented (Train: Jan-Aug, Val: Sept-Oct, Test: Nov-Dec), as a compressed **Parquet** file in `artifacts\feature_engineering`. **Strictly avoid random shuffling.**
 
 #### 2. The Chef's Lab: Training Pipeline (Model Development)
 
 **Goal:** Create a mathematical representation of tipping behavior.
 
-* **2.1 Temporal Splitting:** In `src/components/train_model.py`, with the time-based split implemented (e.g., Train on Jan-May data, Validate on June data). **Strictly avoid random shuffling.**
-* **2.2 Baseline creation:** Calculate the Mean Absolute Error (MAE) of a "dumb" model (always predicting the mean tip) to set a performance floor.
-* **2.3 Model Training:** Initialize and train an **XGBoost Regressor**  on the training set.
-* **2.4 Hyperparameter Tuning:** Configure `params.yaml` to control `max_depth`, `learning_rate`, and `n_estimators`.
-* **2.5 Evaluation:** Calculate RMSE and R-squared on the validation set.
-* **2.6 Interpretability:** Generate and save a "Feature Importance" plot to explain *why* the model makes certain predictions.
-* **2.7 Model Registry:** Save the trained model object (e.g., `xgb_model.json`) to the `artifacts/model_registry/` directory.
+* **2.1 Baseline creation:** Initialize a **DummyRegressor** to set a performance floor.
+* **2.2 Model Training:** Train multiple candidate models (**ElasticNet**, **Ridge**, **RandomForest**, **XGBoost**, **GradientBoosting**) on the training set.
+* **2.3 Hyperparameter Tuning:** Configure `params.yaml` to control hyperparameters for all candidate models.
+* **2.4 Evaluation & Benchmarking:** Use **MLflow** to track experiments, parameters, and metrics (MAE, MSE, R2).
+* **2.5 Champion Selection:** Automatically identify the model with the lowest MAE.
+* **2.6 Model Persistence:** Save the champion model locally as a `joblib` artifact.
+* **2.7 Model MLflow Registry:** Register the champion model to the **MLflow Model Registry** as `nyc-taxi-tips-champion`.
 
 #### 3. The Dinner Rush: Inference Pipeline (Serving)
 

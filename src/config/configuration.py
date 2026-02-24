@@ -17,6 +17,7 @@ from src.entity.config_entity import (
     ModelTrainerConfig,
 )
 from src.utils.common import create_directories, read_yaml
+from src.utils.mlflow_config import get_mlflow_uri
 
 
 class ConfigurationManager:
@@ -114,6 +115,7 @@ class ConfigurationManager:
             data_path=config["data_path"],
         )
 
+    def get_model_trainer_config(self) -> ModelTrainerConfig:
         """
         Retrieves the configuration for the Model Training stage.
 
@@ -121,21 +123,21 @@ class ConfigurationManager:
             ModelTrainerConfig: Validated training configuration object.
         """
         config = self.config["model_trainer"]
-        params = self.params["XGBoost"]
         create_directories([config["root_dir"]])
 
         return ModelTrainerConfig(
             root_dir=config["root_dir"],
             train_data_path=config["train_data_path"],
-            test_data_path=config["test_data_path"],
+            val_data_path=config["val_data_path"],
             model_name=config["model_name"],
-            n_estimators=params["n_estimators"],
-            max_depth=params["max_depth"],
-            learning_rate=params["learning_rate"],
-            subsample=params["subsample"],
-            colsample_bytree=params["colsample_bytree"],
-            objective=params["objective"],
-            random_state=params["random_state"],
+            all_params=self.params,
+            mlflow_uri=get_mlflow_uri(),
+            subsample_fraction=self.params.get("Training", {}).get(
+                "subsample_fraction", 1.0
+            ),
+            selection_metrics=self.params.get("Training", {}).get(
+                "selection_metrics", {"mae": 1.0}
+            ),
         )
 
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
@@ -146,17 +148,13 @@ class ConfigurationManager:
             ModelEvaluationConfig: Validated evaluation configuration object.
         """
         config = self.config["model_evaluation"]
-        params = self.params["XGBoost"]
         create_directories([config["root_dir"]])
 
         return ModelEvaluationConfig(
             root_dir=config["root_dir"],
             test_data_path=config["test_data_path"],
             model_path=config["model_path"],
-            all_params=params,
+            all_params=self.params,
             metric_file_name=config["metric_file_name"],
-            mlflow_uri=(
-                "https://dagshub.com/SebastianGarrido2790/"
-                "nyc-taxi-tips-prediction.mlflow"
-            ),
+            mlflow_uri=get_mlflow_uri(),
         )

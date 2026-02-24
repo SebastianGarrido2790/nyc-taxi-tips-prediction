@@ -8,7 +8,7 @@ It defines a Directed Acyclic Graph (DAG) ensuring that:
 3.  **Traceability**: The lineage of every model is fully auditable.
 
 ## 2. Pipeline DAG
-The pipeline consists of 4 primary stages (currently implemented):
+The pipeline consists of 5 primary stages (currently implemented):
 
 ```mermaid
 flowchart TD
@@ -39,10 +39,16 @@ flowchart TD
         I --> L[Test Set]
     end
 
+    subgraph Stage_05 [5. Model Trainer]
+        J & K --> M((Run Model Training))
+        M --> N[Champion Model.joblib]
+    end
+
     style C fill:#f9f,stroke:#333
     style E fill:#f9f,stroke:#333
     style G fill:#f9f,stroke:#333
     style I fill:#f9f,stroke:#333
+    style M fill:#f9f,stroke:#333
 ```
 
 ## 3. Detailed Stage Breakdown
@@ -78,6 +84,17 @@ flowchart TD
     *   `artifacts/feature_engineering/val.parquet`
     *   `artifacts/feature_engineering/test.parquet`
 *   **Dependency**: `src/components/feature_engineering.py`.
+
+### 3.5 Model Trainer (`stage_05_model_trainer`)
+*   **Input**: Training and Validation Set (`.parquet`).
+*   **Logic**:
+    *   **Subsampling**: Fast local training toggle.
+    *   **Model Benchmarking**: Trains multiple candidates (XGBoost, RandomForest, Ridge, etc.).
+    *   **Selection**: Multi-metric weighted scoring on Validation Set.
+*   **Outputs**:
+    *   `artifacts/model_trainer/model.joblib` (Best Model)
+*   **Tracking**: Integrated with **MLflow** for experiment tracking and model registration.
+*   **Dependency**: `src/components/model_trainer.py`.
 
 ## 4. Execution
 To reproduce the entire pipeline (or only what changed):

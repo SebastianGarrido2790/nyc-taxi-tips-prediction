@@ -11,13 +11,16 @@ import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Optional
 
 LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOGS_DIR / "running_logs.log"
 
 
-def get_logger(name: str | None = None, headline: str | None = None) -> logging.Logger:
+def get_logger(
+    name: Optional[str] = None, headline: Optional[str] = None
+) -> logging.Logger:
     """
     Returns a configured logger with consistent formatting.
     Adds an optional headline section to separate logs per script.
@@ -28,7 +31,7 @@ def get_logger(name: str | None = None, headline: str | None = None) -> logging.
         - Works safely across multi-module projects
 
     Args:
-        name (str): Logger name, typically __name__.
+        name (Optional[str]): Optional logger name, typically __name__.
         headline (Optional[str]): Optional headline for visual separation
             (e.g., script name).
 
@@ -75,7 +78,7 @@ def get_logger(name: str | None = None, headline: str | None = None) -> logging.
         if headline:
             headline_text = (
                 f"========================= START: {headline} "
-                f"({datetime.now():%Y-%m-%d %H:%M}) =========================n"
+                f"({datetime.now():%Y-%m-%d %H:%M}) =========================\n"
             )
             with open(LOG_FILE, "a", encoding="utf-8") as f:
                 f.write(headline_text)
