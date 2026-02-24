@@ -21,7 +21,7 @@ Taxi drivers and fleet operators lack actionable insights into the factors that 
 ### 3. Objectives & Success Metrics
 
 * **Primary Objective:** Develop an XGBoost regression model to predict `tip_amount` with high accuracy.
-* **Secondary Objective:** Implement a robust MLOps pipeline using DVC and UV to ensure full reproducibility of experiments.
+* **Secondary Objective:** Implement a robust MLOps pipeline using DVC and UV, culminating in a Streamlit dashboard to visualize model data and predictions interactively.
 * **Key Performance Indicators (KPIs):**
     * **Model Accuracy:** RMSE (Root Mean Squared Error) lower than the baseline MAE (Mean Absolute Error).
     * **Pipeline Latency:** End-to-end execution (Ingestion to Inference) optimized for batch processing.
@@ -71,6 +71,11 @@ Taxi drivers and fleet operators lack actionable insights into the factors that 
     * Generate `tip_amount` predictions.
 * **Output:** Save predictions to `artifacts/predictions/` (simulating a Data Warehouse load) for downstream analysis.
 
+#### 4.4 Visualization Pipeline (Dashboard)
+* **Input:** Evaluation metrics, feature importance data, and generated predictions.
+* **Process:** Serve an interactive Streamlit application to visualize model data and prediction results, bridging the gap between the MLOps backend and business users.
+* **Output:** A user-friendly web interface accessible to stakeholders.
+
 ---
 
 ### 5. Technical Architecture & Stack
@@ -117,3 +122,4 @@ The system adheres to the **FTI Pattern**:
 2. **Phase 2: Data Engineering:** Implement `build_features.py` with cleaning rules.
 3. **Phase 3: Model Training:** Implement `train_model.py` with XGBoost and Temporal Split.
 4. **Phase 4: Inference & Orchestration:** Implement `predict_model.py` and wire everything with `dvc.yaml`.
+5. **Phase 5: Visualization:** Implement a Streamlit dashboard (`app.py`) to visualize the model data and predictions natively.

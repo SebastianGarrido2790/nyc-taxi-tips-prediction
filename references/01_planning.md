@@ -11,6 +11,7 @@ We are building a **Batch Prediction System** orchestrated by DVC (Data Version 
 * **Pipeline A (The Feeder):** A robust ETL process that transforms raw NYC taxi logs into a "Feature Store" (parquet files in `data/processed`).
 * **Pipeline B (The Brain):** A training workflow that consumes the Feature Store to produce a versioned XGBoost artifact, logged in a Model Registry.
 * **Pipeline C (The Worker):** A batch inference job that wakes up, pulls the latest "Brain" and fresh data, calculates expected tips, and saves them for downstream analytics.
+* **Pipeline D (The Application):** A Streamlit dashboard to visually present the model data, feature importance, and final predictions to end-users.
 
 ### 2. What is the expected result?
 
@@ -56,6 +57,11 @@ We will execute this in four architectural phases, mapping to your `src/` folder
 * Load the trained artifact from Phase 3.
 * Generate predictions and merge them with `VendorID` for business context.
 * Save the final dataset to `artifacts/inference_results.csv`.
+
+#### **Phase 5: The Interactive Dashboard (`app.py`)**
+
+* **Visualization:** Build a Streamlit application to visually explore the model data and evaluation metrics.
+* **Interactive Predictions:** Connect the dashboard to the MLflow Model Registry to serve and display the predictions in a user-friendly format, optimizing the MLOps system for production readiness.
 
 ---
 

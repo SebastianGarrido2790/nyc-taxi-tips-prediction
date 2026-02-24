@@ -33,6 +33,11 @@ The solution is architected into three isolated pipelines to ensure modularity a
     * **Key Logic:** Simulates a production batch job by loading recent trip data, fetching the latest model artifact, and generating tip predictions.
     * **Output:** A predictions dataset stored in `artifacts/predictions/` for downstream analytics.
 
+* **4. Visualization Application (Dashboard)**
+    * **Objective:** Serve as the interactive frontend for the prediction system.
+    * **Key Logic:** A Streamlit application that visualizes the model data, evaluation metrics, and predicted tip amounts.
+    * **Output:** An interactive web dashboard for business stakeholders, optimizing the production readiness of the system.
+
 ---
 
 ### 3. Task List per Pipeline
@@ -83,6 +88,14 @@ Here is the step-by-step implementation plan, mapping to the "FTI" (Feature, Tra
 * **3.2.1 Model Loading:** Load the MLFlow Model Registered.
 * **3.3 Prediction:** Run the model on the fresh data to generate `predicted_tip`.
 * **3.4 Persistence:** Join predictions with `VendorID` and save the results to `artifacts/predictions/inference_results.csv` for analysis.
+
+#### 4. The Front of House: Visualization Application (Dashboard)
+
+**Goal:** Serve insights and predictions to the business stakeholders interactively.
+
+* **4.1 Dashboard Setup:** Initialize a Streamlit application (`app.py`).
+* **4.2 Data Visualization:** Create interactive charts to explore data distributions and feature importance.
+* **4.3 Prediction Serving:** Integrate the predictions and model artifacts to display actionable insights clearly for the Fleet Managers.
 
 ---
 

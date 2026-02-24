@@ -8,7 +8,7 @@ We have two distinct stakeholders: the **Business User** (Fleet Manager) who con
 
 **Story A: The Business Value (Fleet Manager)**
 
-> "As a **NYC Taxi Fleet Manager**, I want to **understand exactly which trip characteristics (time, location, distance) correlate with higher tips**, so that I can **optimize driver schedules and routes to maximize fleet revenue.**"
+> "As a **NYC Taxi Fleet Manager**, I want to **understand exactly which trip characteristics (time, location, distance) correlate with higher tips**, so that I can **optimize driver schedules and routes to maximize fleet revenue, utilizing an interactive dashboard to visualize the data and predictions.**"
 
 **Story B: The Engineering Necessity (MLOps Engineer)**
 
@@ -36,3 +36,4 @@ The dataset contains **5 million rows**.
 
 * *The "Notebook" Approach:* Loading 5M rows into Pandas inside a Jupyter Notebook for every experiment will crash the kernel and waste hours of compute time.
 * *The "Pipeline" Solution:* We must process the data *once* (Feature Pipeline), save it in a compressed, machine-ready format (Parquet), and then load only the necessary bits for training (Training Pipeline).
+* *The "Visualization" Need:* The solution must culminate in a Streamlit dashboard, allowing non-technical stakeholders to securely and interactively explore the model data and predictions without touching the underlying code.
