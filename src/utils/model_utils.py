@@ -2,17 +2,24 @@ import numpy as np
 from src.utils.logger import logger
 
 
-def get_feature_importances(model):
+def get_feature_importances(model: object) -> tuple[list[str], list[float]]:
     """
-    Extracts feature importances from an arbitrary trained machine learning model.
-    Handles tree-based models, linear models, and XGBoost specifically.
+    Extracts feature importances or coefficients from an arbitrary trained machine learning model.
+
+    Why no sklearn import?
+    This function uses "duck typing" to inspect the model's attributes (`hasattr`) rather than relying on
+    strict type checking (`isinstance()`) against specific libraries like scikit-learn or XGBoost. This
+    approach reduces hard dependencies, prevents import errors if packages change, and makes the
+    utility natively extendable across entirely different ML framework families.
 
     Args:
-        model: Trained model artifact.
+        model (object): The trained machine learning model object (e.g., sklearn estimator, XGBoost booster).
 
     Returns:
-        tuple[list, list]: A tuple containing (feature_names, importances).
-                           Returns (None, None) if extraction is not supported.
+        tuple[list[str], list[float]]: A tuple containing two lists:
+            - feature_names (list[str]): The names of the features.
+            - importances (list[float]): The corresponding importance scores or absolute coefficients.
+            Returns (None, None) if the model format is unsupported or an error occurs.
     """
     try:
         # Scikit-learn Tree-based models (e.g., RandomForest, GradientBoosting)
