@@ -16,6 +16,7 @@ import json
 import joblib
 import plotly.express as px
 import yaml
+import numpy as np
 from pathlib import Path
 
 # Set page config
@@ -193,6 +194,9 @@ if page == "📊 Dashboard & Evaluation":
             f"**🏆 Champion Selection Weights:**   {weights_str}  *(Models are scored and ranked automatically based on these parameters)*",
             icon="⚖️",
         )
+        st.caption(
+            "💡 *Note: A weight of 1.0 is always considered the 'best' performance for that specific metric.*"
+        )
 
     st.markdown("---")
 
@@ -213,6 +217,11 @@ if page == "📊 Dashboard & Evaluation":
             current_model, "feature_names_in_"
         ):
             importances = current_model.feature_importances_
+            feature_names = current_model.feature_names_in_
+        elif hasattr(current_model, "coef_") and hasattr(
+            current_model, "feature_names_in_"
+        ):
+            importances = np.abs(current_model.coef_)
             feature_names = current_model.feature_names_in_
         elif hasattr(current_model, "get_booster"):  # direct XGBoost
             booster = current_model.get_booster()
