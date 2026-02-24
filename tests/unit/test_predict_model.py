@@ -18,10 +18,13 @@ from src.entity.config_entity import ModelEvaluationConfig
 @pytest.fixture
 def mock_predict_config(tmp_path):
     """Provides a mock configuration for PredictModel."""
+    model_path = tmp_path / "model.joblib"
+    model_path.touch()
+
     return ModelEvaluationConfig(
         root_dir=tmp_path / "model_evaluation",
         test_data_path=tmp_path / "test.parquet",
-        model_path=tmp_path / "model.joblib",
+        model_path=model_path,
         all_params={},
         metric_file_name=tmp_path / "metrics.json",
         mlflow_uri="file:./mlruns",
@@ -67,7 +70,9 @@ def test_predict_model_inference_with_target(
 
     # Asserts
     # Data load and preprocessing
-    mock_load_model.assert_called_once_with(mock_predict_config.model_path)
+    args, _ = mock_load_model.call_args
+    assert args[0] == mock_predict_config.model_path
+
     args, _ = mock_model.predict.call_args
     X_passed = args[0]
 

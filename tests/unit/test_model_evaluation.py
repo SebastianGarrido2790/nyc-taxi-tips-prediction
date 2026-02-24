@@ -18,10 +18,13 @@ from src.entity.config_entity import ModelEvaluationConfig
 @pytest.fixture
 def mock_eval_config(tmp_path):
     """Provides a mock configuration for ModelEvaluation."""
+    model_path = tmp_path / "model.joblib"
+    model_path.touch()
+
     return ModelEvaluationConfig(
         root_dir=tmp_path / "model_evaluation",
         test_data_path=tmp_path / "test.parquet",
-        model_path=tmp_path / "model.joblib",
+        model_path=model_path,
         all_params={},
         metric_file_name=tmp_path / "metrics.json",
         mlflow_uri="file:./mlruns",
@@ -79,7 +82,9 @@ def test_evaluate_workflow(
     # Assertions
     # 1. Check data loading and preprocessing
     mock_read_parquet.assert_called_once_with(mock_eval_config.test_data_path)
-    mock_load_model.assert_called_once_with(mock_eval_config.model_path)
+
+    args, _ = mock_load_model.call_args
+    assert args[0] == mock_eval_config.model_path
 
     # 2. Check model predict called with right shape (features only)
     args, _ = mock_model.predict.call_args

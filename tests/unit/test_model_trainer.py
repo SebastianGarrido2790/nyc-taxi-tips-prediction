@@ -109,8 +109,8 @@ def test_train_and_register_workflow(
     assert mock_register.called
 
     # Verify local model save
-    model_path = mock_trainer_config.root_dir / mock_trainer_config.model_name
-    assert model_path.exists()
+    model_files = list(mock_trainer_config.root_dir.glob("*.joblib"))
+    assert len(model_files) == 1
 
 
 def test_champion_selection_logic(mock_trainer_config):

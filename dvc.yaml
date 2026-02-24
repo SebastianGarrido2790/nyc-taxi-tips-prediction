@@ -55,7 +55,7 @@ stages:
       - artifacts/feature_engineering/train.parquet
       - artifacts/feature_engineering/test.parquet
     outs:
-      - artifacts/model_trainer/model.joblib
+      - artifacts/model_trainer
 
   model_evaluation:
     cmd: uv run python -m src.pipeline.stage_06_model_evaluation
@@ -66,7 +66,7 @@ stages:
       - config/config.yaml
       - config/params.yaml
       - artifacts/feature_engineering/test.parquet
-      - artifacts/model_trainer/model.joblib
+      - artifacts/model_trainer
     outs:
       - artifacts/predictions/inference_results.csv
     metrics:

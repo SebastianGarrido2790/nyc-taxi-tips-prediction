@@ -63,11 +63,16 @@ class PredictModel:
             # Load the model directly from local system
             # NOTE: Production systems might load from MLflow Model Registry like:
             # import mlflow.pyfunc
-            # model_name = "nyc-taxi-tips-champion"
+            # model_name = "champion_model_name"
             # model_version = "latest"
             # model = mlflow.pyfunc.load_model(f"models:/{model_name}/{model_version}")
-            model = joblib.load(self.config.model_path)
-            logger.info(f"Loaded model from {self.config.model_path}")
+            model_dir = Path(self.config.model_path).parent
+            model_files = list(model_dir.glob("*.joblib"))
+            if not model_files:
+                raise FileNotFoundError(f"No .joblib model found in {model_dir}")
+            actual_model_path = model_files[0]
+            model = joblib.load(actual_model_path)
+            logger.info(f"Loaded model from {actual_model_path}")
 
             # Predict
             predictions = model.predict(X_batch_processed)

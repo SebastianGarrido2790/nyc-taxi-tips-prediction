@@ -185,15 +185,21 @@ class ModelTrainer:
             logger.info(f"Selected metrics: {metrics_to_use}")
             logger.info(f"Champion breakdown: {metric_details}")
 
+            # Clear existing model files locally to avoid clutter
+            for f in os.listdir(self.config.root_dir):
+                if f.endswith(".joblib"):
+                    os.remove(os.path.join(self.config.root_dir, f))
+
             # Save champion model locally
-            model_path = os.path.join(self.config.root_dir, self.config.model_name)
+            model_filename = f"{champion['name']}.joblib"
+            model_path = os.path.join(self.config.root_dir, model_filename)
             joblib.dump(champion["model"], model_path)
             logger.info(f"Champion model saved locally to {model_path}")
 
             # Register Champion
             model_uri = f"runs:/{champion['run_id']}/model"
-            mlflow.register_model(model_uri, "nyc-taxi-tips-champion")
-            logger.info("Registered champion model as 'nyc-taxi-tips-champion'")
+            mlflow.register_model(model_uri, champion["name"])
+            logger.info(f"Registered champion model as '{champion['name']}'")
 
         except Exception as e:
             raise CustomException(e, sys) from e

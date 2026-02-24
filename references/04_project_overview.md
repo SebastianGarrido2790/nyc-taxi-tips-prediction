@@ -109,7 +109,7 @@ The project utilizes a "Boring Technology" stack—prioritizing reliability and 
 | **Dependency Mgmt** | **UV** | High-performance replacement for Pip/Poetry; ensures deterministic environments. |
 | **Orchestration** | **DVC (Data Version Control)** | Manages the pipeline DAG and versions large datasets (5M rows) that Git cannot handle. |
 | **Processing** | **Pandas / Polars** | Robust tabular data manipulation. Polars is reserved as a fallback for high-memory operations. |
-| **Modeling** | **XGBoost** | The industry standard for gradient boosting on structured data. |
+| **Modeling** | **Trained ML Algorithms** | The industry standard for machine learning on structured data. |
 
 ---
 
@@ -127,7 +127,7 @@ The project utilizes a "Boring Technology" stack—prioritizing reliability and 
 
 1. **Source Code Repository:** A clean, modular codebase structured according to the `src/` layout (components, pipeline, entity).
 2. **Reproducible Pipeline:** A `dvc.yaml` configuration allowing any engineer to reproduce results via `dvc repro`.
-3. **Model Artifact:** A trained, versioned XGBoost model.
+3. **Model Artifact:** A trained, versioned model.
 4. **Insight Report:** A "Feature Importance" analysis ranking the factors that most strongly influence tipping behavior.
 5. **UI Dashboard:** A Streamlit dashboard to visualize the data and model predictions.
 
