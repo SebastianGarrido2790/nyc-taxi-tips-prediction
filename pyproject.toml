@@ -21,6 +21,8 @@ dependencies = [
     "seaborn>=0.13.0",
     "rich>=13.5.0",
     "python-dotenv>=1.0.0",
+    "streamlit>=1.54.0",
+    "plotly>=6.5.2",
 ]
 
 [project.optional-dependencies]

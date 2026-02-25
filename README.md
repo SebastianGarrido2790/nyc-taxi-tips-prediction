@@ -34,4 +34,7 @@ uv run dvc pull
 ```bash
 # Run the full pipeline
 uv run dvc repro
+
+# Launch Interactive Dashboard
+uv run streamlit run app.py
 ```

@@ -1,5 +1,7 @@
 import numpy as np
-from src.utils.logger import logger
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_feature_importances(model: object) -> tuple[list[str], list[float]]:

@@ -1,10 +1,9 @@
 """
 NYC Taxi Tips Predictor & Analyst Dashboard.
 
-This Streamlit application serves as the interactive frontend (Phase 5) for the
-NYC Taxi Tip Prediction System. It loads evaluation metrics, batch predictions,
-and the trained Champion Model (XGBoost) artifact to visualize performance
-and allow real-time interactive predictions.
+This Streamlit application serves as the interactive frontend (Phase 5) for the NYC Taxi Tip
+Prediction System. It loads evaluation metrics, batch predictions, and the trained Champion Model
+from the local artifacts to visualize performance and allow real-time interactive predictions.
 
 Usage:
     uv run streamlit run app.py
@@ -214,6 +213,14 @@ if page == "📊 Dashboard & Evaluation":
             feat_df = pd.DataFrame(
                 {"Feature": feature_names, "Importance": importances}
             )
+
+            # Normalize the importance to sum to 100 (Relative Percentage)
+            total_importance = feat_df["Importance"].sum()
+            if total_importance > 0:
+                feat_df["Importance"] = (
+                    (feat_df["Importance"] / total_importance) * 100
+                ).round(4)
+
             feat_df = feat_df.sort_values(by="Importance", ascending=True).tail(
                 10
             )  # Top 10
@@ -227,8 +234,12 @@ if page == "📊 Dashboard & Evaluation":
                 color="Importance",
                 color_continuous_scale="Viridis",
                 template="plotly_dark",
+                labels={"Importance": "Relative Importance (%)"},
             )
             st.plotly_chart(fig, use_container_width=True)
+            st.caption(
+                "💡 *Importance is normalized as a percentage of the total predictive power across all features.*"
+            )
         else:
             st.info(
                 "Feature importance not supported for the current champion model type."
@@ -236,12 +247,15 @@ if page == "📊 Dashboard & Evaluation":
 
     with col_pred:
         st.subheader("Latest Batch Predictions")
-        st.markdown(f"Displaying a sample of {len(predictions_df)} recent inferences.")
+        sample_size = min(5000, len(predictions_df))
+        st.markdown(
+            f"Displaying a sample of {sample_size:,} out of {len(predictions_df):,} recent inferences."
+        )
 
         # Quick distribution plot of predictions
         if "predicted_tip" in predictions_df.columns:
             fig2 = px.histogram(
-                predictions_df.sample(min(1000, len(predictions_df))),
+                predictions_df.sample(sample_size),
                 x="predicted_tip",
                 nbins=50,
                 title="Distribution of Predicted Tips (Sample)",
@@ -250,127 +264,315 @@ if page == "📊 Dashboard & Evaluation":
             )
             st.plotly_chart(fig2, use_container_width=True)
 
-            # Show actual data
-            st.dataframe(predictions_df.head(100), use_container_width=True)
+            # Show actual data with enhanced visual context
+            st.markdown("##### 🧾 Inferences Ledger (Random 100 Sample)")
+
+            disp_df = predictions_df.sample(100).copy()
+            if "VendorID" in disp_df.columns:
+                # Map real NYC taxi service providers for better business context
+                vendor_map = {1: "🚗 Creative Mobile", 2: "🚕 VeriFone Inc"}
+                disp_df["Vendor"] = disp_df["VendorID"].map(
+                    lambda x: vendor_map.get(x, str(x))
+                )
+
+                # Reorder columns to put Vendor first
+                cols = ["Vendor", "predicted_tip"] + [
+                    c
+                    for c in disp_df.columns
+                    if c not in ["Vendor", "predicted_tip", "VendorID"]
+                ]
+                disp_df = disp_df[cols]
+
+            st.dataframe(
+                disp_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "predicted_tip": st.column_config.NumberColumn(
+                        "Predicted Tip",
+                        help="Model's estimated tip amount in USD",
+                        format="$ %.2f",
+                    ),
+                    "Vendor": st.column_config.TextColumn(
+                        "Taxi Provider", help="Technology Service Provider"
+                    ),
+                },
+            )
+            st.caption(
+                "💡 *Vendor IDs from the TLC data are mapped to their respective service providers:*\n"
+                "* **1:** Creative Mobile Technologies, LLC\n"
+                "* **2:** VeriFone Inc."
+            )
 
 # --- PAGE 2: Interactive Prediction ---
 elif page == "⚡ Interactive Prediction":
-    st.header("Simulate a Ride")
-    st.markdown(
-        "Input ride characteristics below to get a real-time tip prediction from the model."
-    )
+    col_head, col_btn = st.columns([5, 1])
+    with col_head:
+        st.header("Simulate a Ride")
+        st.markdown(
+            "Input ride characteristics below to get a real-time tip prediction from the model. *You can add or specify multiple rows to run batch predictions!*"
+        )
+    with col_btn:
+        st.write("")  # Adjust vertical alignment
+        if st.button("🔄 Reset Details", use_container_width=True):
+            if "input_df" in st.session_state:
+                del st.session_state["input_df"]
+            if "editor_key" in st.session_state:
+                del st.session_state["editor_key"]
+            st.rerun()
+
+    # Base characteristics layout replaced with an editable dataframe using column_config
+    if "input_df" not in st.session_state:
+        st.session_state.input_df = pd.DataFrame(
+            [
+                {
+                    "trip_distance": 2.5,
+                    "total_amount": 15.0,
+                    "passenger_count": 1,
+                    "ratecode_id": 1,
+                    "airport_fee": 0.0,
+                    "congestion_surcharge": 2.5,
+                    "tolls_amount": 0.0,
+                    "hour": 12,
+                    "day": 15,
+                    "month": 1,
+                }
+            ]
+        )
 
     with st.form("prediction_form"):
-        st.subheader("Trip Details")
-        col1, col2 = st.columns(2)
+        st.subheader("Trip Details (Editable)")
+        st.caption(
+            "Double-click any cell to adjust features. Use the '+' below the table to add more rides."
+        )
 
-        with col1:
-            trip_distance = st.number_input(
-                "Trip Distance (miles)",
-                min_value=0.1,
-                max_value=100.0,
-                value=2.5,
-                step=0.1,
-            )
-            total_amount = st.number_input(
-                "Total Fare Amount ($)",
-                min_value=1.0,
-                max_value=500.0,
-                value=15.0,
-                step=0.5,
-            )
-            passenger_count = st.number_input(
-                "Passenger Count", min_value=1, max_value=6, value=1, step=1
-            )
-            ratecode_id = st.selectbox(
-                "Rate Code",
-                options=[1, 2, 3, 4, 5, 6, 99],
-                format_func=lambda x: f"Code {x}",
-            )
+        edited_df = st.data_editor(
+            st.session_state.input_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            column_config={
+                "trip_distance": st.column_config.NumberColumn(
+                    "Distance (miles)",
+                    min_value=0.1,
+                    max_value=100.0,
+                    step=0.1,
+                    format="%.1f",
+                    help="Total distance of the ride in miles.",
+                    default=2.5,
+                    required=True,
+                ),
+                "total_amount": st.column_config.NumberColumn(
+                    "Total Fare ($)",
+                    min_value=1.0,
+                    max_value=500.0,
+                    step=0.5,
+                    format="$ %.2f",
+                    help="Total amount charged to the passenger, excluding tip.",
+                    default=15.0,
+                ),
+                "passenger_count": st.column_config.NumberColumn(
+                    "Passengers",
+                    min_value=1,
+                    max_value=6,
+                    step=1,
+                    help="Number of passengers in the vehicle.",
+                    default=1,
+                ),
+                "ratecode_id": st.column_config.SelectboxColumn(
+                    "Rate Code",
+                    options=[1, 2, 3, 4, 5, 6, 99],
+                    help="Final rate code in effect (e.g., 1 for Standard, 2 for JFK).",
+                    default=1,
+                ),
+                "airport_fee": st.column_config.NumberColumn(
+                    "Airport Fee ($)",
+                    min_value=0.0,
+                    max_value=5.0,
+                    step=1.25,
+                    format="$ %.2f",
+                    help="Additional fee for airport trips.",
+                    default=0.0,
+                ),
+                "congestion_surcharge": st.column_config.NumberColumn(
+                    "Congestion ($)",
+                    min_value=0.0,
+                    max_value=5.0,
+                    step=2.5,
+                    format="$ %.2f",
+                    help="Surcharge for entering the Manhattan congestion zone.",
+                    default=2.5,
+                ),
+                "tolls_amount": st.column_config.NumberColumn(
+                    "Tolls ($)",
+                    min_value=0.0,
+                    max_value=50.0,
+                    step=0.5,
+                    format="$ %.2f",
+                    help="Total amount of all tolls paid in trip.",
+                    default=0.0,
+                ),
+                "hour": st.column_config.NumberColumn(
+                    "Pickup Hour",
+                    min_value=0,
+                    max_value=23,
+                    step=1,
+                    help="Hour of the day when the meter was engaged (0-23).",
+                    default=12,
+                ),
+                "day": st.column_config.NumberColumn(
+                    "Day of Month",
+                    min_value=1,
+                    max_value=31,
+                    step=1,
+                    help="Day of the month when the trip started.",
+                    default=15,
+                ),
+                "month": st.column_config.NumberColumn(
+                    "Month",
+                    min_value=1,
+                    max_value=12,
+                    step=1,
+                    help="Month of the year (1-12).",
+                    default=1,
+                ),
+            },
+            key="editor_key",
+        )
 
-        with col2:
-            airport_fee = st.number_input(
-                "Airport Fee ($)", min_value=0.0, max_value=5.0, value=0.0, step=1.25
-            )
-            congestion_surcharge = st.number_input(
-                "Congestion Surcharge ($)",
-                min_value=0.0,
-                max_value=5.0,
-                value=2.5,
-                step=2.5,
-            )
-            tolls_amount = st.number_input(
-                "Tolls Amount ($)", min_value=0.0, max_value=50.0, value=0.0, step=0.5
-            )
-            hour = st.slider("Pickup Hour", 0, 23, 12)
-            day = st.slider("Day of Month", 1, 31, 15)
-            month = st.slider("Month", 1, 12, 1)
-
-        submitted = st.form_submit_button("Predict Tip 🔮")
+        submitted = st.form_submit_button("Predict Tip(s) 🔮")
 
     if submitted:
-        # 1. We need to construct the input exactly as the model expects it.
-        # This requires mimicking the feature engineering step.
-        # We need the cyclical features:
+        # Save dataframe to session state so it persists across renders
+        st.session_state.input_df = edited_df.reset_index(drop=True)
         import math
 
-        hour_sin = math.sin(2 * math.pi * hour / 24)
-        hour_cos = math.cos(2 * math.pi * hour / 24)
-        day_sin = math.sin(2 * math.pi * day / 31)
-        day_cos = math.cos(2 * math.pi * day / 31)
-        month_sin = math.sin(2 * math.pi * month / 12)
-        month_cos = math.cos(2 * math.pi * month / 12)
+        if len(edited_df) == 0:
+            st.warning("Please add at least one ride to predict.")
+        else:
+            predictions_list = []
 
-        # Create input df. Note: The exact columns depend on what was outputted by feature_engineering
-        # Let's read the feature names from the model if possible, or build a safe dict.
-        input_dict = {
-            "VendorID": 1.0,  # dummy
-            "passenger_count": float(passenger_count),
-            "trip_distance": float(trip_distance),
-            "RatecodeID": float(ratecode_id),
-            "PULocationID": 132.0,  # dummy JFK
-            "DOLocationID": 236.0,  # dummy Upper East Side
-            "payment_type": 1.0,  # dummy Credit Card
-            "fare_amount": total_amount
-            - airport_fee
-            - congestion_surcharge
-            - tolls_amount,  # Approx
-            "extra": 0.0,  # dummy
-            "mta_tax": 0.5,  # dummy
-            "tolls_amount": float(tolls_amount),
-            "improvement_surcharge": 0.3,  # dummy
-            "total_amount": float(total_amount),
-            "congestion_surcharge": float(congestion_surcharge),
-            "Airport_fee": float(airport_fee),
-            "pickup_hour_sin": hour_sin,
-            "pickup_hour_cos": hour_cos,
-            "pickup_day_sin": day_sin,
-            "pickup_day_cos": day_cos,
-            "pickup_month_sin": month_sin,
-            "pickup_month_cos": month_cos,
-        }
+            for _, row in edited_df.iterrows():
+                hour = row["hour"]
+                day = row["day"]
+                month = row["month"]
 
-        input_df = pd.DataFrame([input_dict])
+                # Cyclical features
+                hour_sin = math.sin(2 * math.pi * hour / 24)
+                hour_cos = math.cos(2 * math.pi * hour / 24)
+                day_sin = math.sin(2 * math.pi * day / 31)
+                day_cos = math.cos(2 * math.pi * day / 31)
+                month_sin = math.sin(2 * math.pi * month / 12)
+                month_cos = math.cos(2 * math.pi * month / 12)
 
-        # Ensure exact columns
-        if hasattr(model, "feature_names_in_"):
-            expected_cols = model.feature_names_in_
-            # Add missing cols with 0
-            for col in expected_cols:
-                if col not in input_df.columns:
-                    input_df[col] = 0.0
-            # Order and filter
-            input_df = input_df[expected_cols]
+                # Create input dict for model mapped to expected feature engineering features
+                input_dict = {
+                    "VendorID": 1.0,
+                    "passenger_count": float(row["passenger_count"]),
+                    "trip_distance": float(row["trip_distance"]),
+                    "RatecodeID": float(row["ratecode_id"]),
+                    "PULocationID": 132.0,
+                    "DOLocationID": 236.0,
+                    "payment_type": 1.0,
+                    "fare_amount": row["total_amount"]
+                    - row["airport_fee"]
+                    - row["congestion_surcharge"]
+                    - row["tolls_amount"],
+                    "extra": 0.0,
+                    "mta_tax": 0.5,
+                    "tolls_amount": float(row["tolls_amount"]),
+                    "improvement_surcharge": 0.3,
+                    "total_amount": float(row["total_amount"]),
+                    "congestion_surcharge": float(row["congestion_surcharge"]),
+                    "Airport_fee": float(row["airport_fee"]),
+                    "pickup_hour_sin": hour_sin,
+                    "pickup_hour_cos": hour_cos,
+                    "pickup_day_sin": day_sin,
+                    "pickup_day_cos": day_cos,
+                    "pickup_month_sin": month_sin,
+                    "pickup_month_cos": month_cos,
+                }
+                predictions_list.append(input_dict)
 
-        try:
-            with st.spinner("Calculating..."):
-                pred = model.predict(input_df)[0]
+            model_input_df = pd.DataFrame(predictions_list)
 
-            st.success(f"### Expected Tip: **${pred:.2f}**")
+            # Ensure exact columns
+            if hasattr(model, "feature_names_in_"):
+                expected_cols = model.feature_names_in_
+                for col in expected_cols:
+                    if col not in model_input_df.columns:
+                        model_input_df[col] = 0.0
+                model_input_df = model_input_df[expected_cols]
 
-            # Additional context
-            st.info(
-                f"That's a **{(pred / total_amount) * 100:.1f}%** tip on the ${total_amount:.2f} total."
-            )
-        except Exception as e:
-            st.error(f"Prediction failed. Ensure model input shapes match. Error: {e}")
+            try:
+                with st.spinner("Calculating..."):
+                    preds = model.predict(model_input_df)
+
+                st.success(f"### Output For {len(preds)} Ride(s)")
+
+                # Combine input config and predictions to show explicit results
+                results_df = edited_df.copy()
+                results_df["predicted_tip"] = preds
+                results_df["tip_percentage"] = (
+                    results_df["predicted_tip"] / results_df["total_amount"]
+                ) * 100
+
+                # Calculate averages for the batch
+                avg_tip = results_df["predicted_tip"].mean()
+                avg_pct = results_df["tip_percentage"].mean()
+
+                st.markdown("##### 📊 Batch Prediction Averages")
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    st.metric("Average Expected Tip", f"$ {avg_tip:.2f}")
+                with col_m2:
+                    st.metric("Average Tip Percentage", f"{avg_pct:.1f} %")
+
+                st.write("")  # spacing
+                disp_cols = [
+                    "total_amount",
+                    "trip_distance",
+                    "passenger_count",
+                    "predicted_tip",
+                    "tip_percentage",
+                ]
+
+                # Highlight prediction outcome columns using pandas Styler
+                styled_df = (
+                    results_df[disp_cols]
+                    .style.set_properties(
+                        subset=["predicted_tip", "tip_percentage"],
+                        **{
+                            "background-color": "rgba(255, 215, 0, 0.15)",
+                            "color": "#FFD700",
+                            "font-weight": "bold",
+                        },
+                    )
+                    .hide(axis="index")
+                )
+
+                # Display Results beautifully using column_config
+                st.dataframe(
+                    styled_df,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "total_amount": st.column_config.NumberColumn(
+                            "Total Fare Baseline", format="$ %.2f"
+                        ),
+                        "trip_distance": st.column_config.NumberColumn(
+                            "Distance (miles)", format="%.1f"
+                        ),
+                        "passenger_count": st.column_config.NumberColumn("Passengers"),
+                        "predicted_tip": st.column_config.NumberColumn(
+                            "Expected Tip", format="$ %.2f"
+                        ),
+                        "tip_percentage": st.column_config.NumberColumn(
+                            "Tip %", format="%.1f %%"
+                        ),
+                    },
+                )
+
+            except Exception as e:
+                st.error(
+                    f"Prediction failed. Ensure model input shapes match. Error: {e}"
+                )
