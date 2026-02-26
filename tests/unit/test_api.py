@@ -2,7 +2,6 @@
 Unit tests for the FastAPI serving layer (Predict API).
 """
 
-import pytest
 from fastapi.testclient import TestClient
 from src.api.predict_api import app
 

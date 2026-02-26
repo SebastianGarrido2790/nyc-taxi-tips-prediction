@@ -8,7 +8,6 @@ Scope:
 3. Column Dropping (Removing irrelevant features).
 """
 
-import pytest
 import polars as pl
 from src.components.data_transformation import DataTransformation
 from src.entity.config_entity import DataTransformationConfig

@@ -9,7 +9,6 @@ Scope:
 """
 
 import pytest
-import polars as pl
 from src.components.feature_engineering import FeatureEngineering
 from src.entity.config_entity import FeatureEngineeringConfig
 from pathlib import Path

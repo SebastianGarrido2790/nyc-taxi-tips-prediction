@@ -115,7 +115,6 @@ def test_train_and_register_workflow(
 
 def test_champion_selection_logic(mock_trainer_config):
     """Verifies the multi-metric weighted selection logic directly."""
-    trainer = ModelTrainer(mock_trainer_config)
 
     # Higher MAE is worse, Higher R2 is better
     # Sample results
