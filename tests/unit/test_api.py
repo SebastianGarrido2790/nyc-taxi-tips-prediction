@@ -1,5 +1,11 @@
 """
 Unit tests for the FastAPI serving layer (Predict API).
+
+These tests verify:
+1. Health check endpoint returns 200 OK.
+2. Predict endpoint returns 422 Unprocessable Entity when payload is missing required fields.
+3. Predict endpoint returns 200 OK with valid payload.
+4. Feature importance endpoint returns 200 OK with valid payload.
 """
 
 from fastapi.testclient import TestClient
