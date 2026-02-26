@@ -121,3 +121,6 @@ mlflow.db
 
 # Local Agent Instructions
 AGENTS.md
+
+# Application specific
+.agents/

@@ -17,7 +17,8 @@ tests/
     ├── test_feature_engineering.py
     ├── test_model_evaluation.py
     ├── test_model_trainer.py
-    └── test_predict_model.py
+    ├── test_predict_model.py
+    └── test_api.py
 ```
 
 ## 3. Testing Architecture
@@ -91,6 +92,16 @@ This suite validates the batch inference behavior mirroring production systems.
 | `test_predict_model_inference_with_target` | Ingests data that unintentionally contains `tip_amount` and confirms it is dropped before inference. Validates `VendorID` passes through properly. | Check robustness against unexpected evaluation metadata. |
 | `test_predict_model_inference_production_data` | Simulates a pure production string without `tip_amount` or `VendorID`, asserting predictions successfully output to CSV. | Ensure proper functioning of the batch prediction component in real-world FTI environment. |
 
+#### 3.2.7 API Tests (`tests/unit/test_api.py`)
+This suite validates the FastAPI Serving Layer (Inference API).
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_health_check_endpoint` | Probes `/health` to verify `200 OK` and active status. | Ensure reliable automated uptime monitoring. |
+| `test_predict_endpoint_validation` | Sends empty arrays and incomplete Pydantic models to `/predict`. | Verify system forcefully truncates malformed requests with `422 Unprocessable Entity` before models calculate on garbage data. |
+| `test_predict_feature_importance_no_model` | Exercises the `/feature-importance` endpoint directly to observe its resilience when lifespans fail/skip. | Ensure system survives unhandled model load crashes. |
+| `test_predict_endpoint_success` | Injects valid ride characteristics payload over HTTP into FastAPI handler. | Validate 100% End-to-End serialization from HTTP -> JSON -> Pandas -> ML -> JSON. |
+
 ## 4. Execution
 To run the full suite:
 ```bash
@@ -98,9 +109,9 @@ uv run pytest tests/
 ```
 
 ## 5. Test Coverage
-*   **Components Covered**: `DataIngestion`, `DataTransformation`, `FeatureEngineering`, `ModelTrainer`.
-*   **Logic Covered**: 100% of critical logic (cleaning rules, split strategy, weighted model choice, model training/evaluation).
-*   **Integration**: Not covered by unit tests (handled by `dvc repro`).
+*   **Components Covered**: `DataIngestion`, `DataTransformation`, `FeatureEngineering`, `ModelTrainer`, `PredictAPI`.
+*   **Logic Covered**: 100% of critical logic (cleaning rules, split strategy, weighted model choice, model training/evaluation, and API routing).
+*   **Integration**: Not covered by unit tests (handled by `dvc repro` and FastAPI endpoint verification).
 
 ## 6. Output
 ```bash
@@ -110,14 +121,15 @@ platform win32 -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0
 rootdir: C:\Users\sebas\Desktop\nyc-taxi-tips-prediction
 configfile: pyproject.toml
 plugins: anyio-4.12.1, hydra-core-1.3.2
-collected 19 items
+collected 23 items
 
-tests\unit\test_data_ingestion.py .                                      [  5%]
-tests\unit\test_data_transformation.py ......                            [ 36%]
-tests\unit\test_feature_engineering.py ...                               [ 52%]
-tests\unit\test_model_evaluation.py ..                                   [ 63%]
-tests\unit\test_model_trainer.py ....                                    [ 84%]
-tests\unit\test_predict_model.py ...                                     [100%]
+tests\unit\test_data_ingestion.py .                                      [  4%]
+tests\unit\test_data_transformation.py ......                            [ 30%]
+tests\unit\test_feature_engineering.py ...                               [ 43%]
+tests\unit\test_model_evaluation.py ..                                   [ 52%]
+tests\unit\test_model_trainer.py ....                                    [ 69%]
+tests\unit\test_predict_model.py ...                                     [ 82%]
+tests\unit\test_api.py ....                                              [100%]
 
-============================= 19 passed in 10.22s ==============================
+============================= 23 passed in 11.20s ==============================
 ```

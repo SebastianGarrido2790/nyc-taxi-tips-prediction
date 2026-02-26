@@ -6,17 +6,21 @@ Prediction System. It loads evaluation metrics, batch predictions, and the train
 from the local artifacts to visualize performance and allow real-time interactive predictions.
 
 Usage:
-    uv run streamlit run app.py
+    1. Ensure the FastAPI backend is running:
+        uv run uvicorn src.api.predict_api:app --reload (Backend API)
+    2. Run the Streamlit app:
+        uv run streamlit run app.py (Frontend UI)
 """
 
 import streamlit as st
 import pandas as pd
 import json
-import joblib
+import requests
 import plotly.express as px
 import yaml
 from pathlib import Path
-from src.utils.model_utils import get_feature_importances
+
+API_URL = "http://localhost:8000"
 
 # Set page config
 st.set_page_config(
@@ -103,21 +107,17 @@ def load_predictions():
     return pd.read_csv(PREDICTIONS_PATH)
 
 
-@st.cache_resource
-def load_model():
-    """
-    Loads the Champion Model (Joblib binary) from the local artifacts directory.
-    Returns (model, model_name) or (None, None) if the model cannot be found.
-    """
-    if not MODEL_DIR.exists():
-        return None, None
-
-    model_files = list(MODEL_DIR.glob("*.joblib"))
-    if not model_files:
-        return None, None
-
-    model_path = model_files[0]
-    return joblib.load(model_path), model_path.stem
+@st.cache_data(ttl=60)
+def check_api_health():
+    """Checks if the FastAPI backend is running."""
+    try:
+        response = requests.get(f"{API_URL}/health", timeout=2)
+        if response.status_code == 200:
+            data = response.json()
+            return True, data.get("model_version", "unknown")
+        return False, "unknown"
+    except requests.exceptions.RequestException:
+        return False, "unknown"
 
 
 @st.cache_data
@@ -135,20 +135,25 @@ def load_params():
 # --- Load Artifacts ---
 metrics = load_metrics()
 predictions_df = load_predictions()
-model, model_name = load_model()
+api_is_healthy, model_name = check_api_health()
 params = load_params()
 
 # --- Main App Layout ---
 st.title("🚕 NYC Taxi Tips Predictor & Analyst")
 st.markdown(
-    f"*A production-ready FTI architecture serving ({model_name} model) predictions.*"
+    f"*A production-ready FTI architecture serving ({model_name} model) predictions via FastAPI.*"
 )
 
-if model is None or metrics is None or predictions_df is None:
+if metrics is None or predictions_df is None:
     st.error(
         "⚠️ Initial artifacts not found. Please run the DVC pipeline (`uv run dvc repro`) first."
     )
     st.stop()
+
+if not api_is_healthy:
+    st.warning(
+        "⚠️ FastAPI Backend is not reachable. Ensure the server is running (`uv run uvicorn src.api.predict_api:app`). Real-time predictions will fail."
+    )
 
 # --- Sidebar ---
 st.sidebar.image(
@@ -206,8 +211,16 @@ if page == "📊 Dashboard & Evaluation":
         st.subheader("Feature Importance")
         st.markdown("What drives tipping behavior?")
 
-        # Extract feature importance safely from dedicated utility
-        feature_names, importances = get_feature_importances(model)
+        # Fetch Feature Importance from FastAPI Backend
+        feature_names, importances = None, None
+        try:
+            res = requests.get(f"{API_URL}/feature-importance", timeout=2)
+            if res.status_code == 200:
+                data = res.json()
+                feature_names = data.get("features")
+                importances = data.get("importances")
+        except requests.exceptions.RequestException:
+            pass
 
         if importances is not None and feature_names is not None:
             feat_df = pd.DataFrame(
@@ -221,16 +234,24 @@ if page == "📊 Dashboard & Evaluation":
                     (feat_df["Importance"] / total_importance) * 100
                 ).round(4)
 
+            num_features = st.slider(
+                "Number of Top Features to Display",
+                min_value=3,
+                max_value=20,
+                value=10,
+                step=1,
+            )
+
             feat_df = feat_df.sort_values(by="Importance", ascending=True).tail(
-                10
-            )  # Top 10
+                num_features
+            )  # Top N
 
             fig = px.bar(
                 feat_df,
                 x="Importance",
                 y="Feature",
                 orientation="h",
-                title="Top 10 Drivers of Taxi Tips",
+                title=f"Top {num_features} Drivers of Taxi Tips",
                 color="Importance",
                 color_continuous_scale="Viridis",
                 template="plotly_dark",
@@ -247,15 +268,28 @@ if page == "📊 Dashboard & Evaluation":
 
     with col_pred:
         st.subheader("Latest Batch Predictions")
-        sample_size = min(5000, len(predictions_df))
+
+        sample_size_limit = (
+            min(10000, len(predictions_df)) if len(predictions_df) > 0 else 100
+        )
+        num_batch_sample = st.slider(
+            "Distribution Sample Size",
+            min_value=100,
+            max_value=sample_size_limit,
+            value=min(5000, len(predictions_df)),
+            step=100,
+        )
+
         st.markdown(
-            f"Displaying a sample of {sample_size:,} out of {len(predictions_df):,} recent inferences."
+            f"Displaying a sample of {num_batch_sample:,} out of {len(predictions_df):,} recent inferences."
         )
 
         # Quick distribution plot of predictions
         if "predicted_tip" in predictions_df.columns:
             fig2 = px.histogram(
-                predictions_df.sample(sample_size),
+                predictions_df.sample(num_batch_sample)
+                if num_batch_sample <= len(predictions_df)
+                else predictions_df,
                 x="predicted_tip",
                 nbins=50,
                 title="Distribution of Predicted Tips (Sample)",
@@ -265,9 +299,24 @@ if page == "📊 Dashboard & Evaluation":
             st.plotly_chart(fig2, use_container_width=True)
 
             # Show actual data with enhanced visual context
-            st.markdown("##### 🧾 Inferences Ledger (Random 100 Sample)")
+            st.markdown("##### 🧾 Inferences Ledger")
 
-            disp_df = predictions_df.sample(100).copy()
+            ledger_sample_limit = (
+                min(1000, len(predictions_df)) if len(predictions_df) > 0 else 10
+            )
+            num_ledger_sample = st.slider(
+                "Ledger Random Sample",
+                min_value=10,
+                max_value=ledger_sample_limit,
+                value=min(100, len(predictions_df)),
+                step=10,
+            )
+
+            disp_df = (
+                predictions_df.sample(num_ledger_sample).copy()
+                if num_ledger_sample <= len(predictions_df)
+                else predictions_df.copy()
+            )
             if "VendorID" in disp_df.columns:
                 # Map real NYC taxi service providers for better business context
                 vendor_map = {1: "🚗 Creative Mobile", 2: "🚕 VeriFone Inc"}
@@ -444,68 +493,21 @@ elif page == "⚡ Interactive Prediction":
     if submitted:
         # Save dataframe to session state so it persists across renders
         st.session_state.input_df = edited_df.reset_index(drop=True)
-        import math
-
         if len(edited_df) == 0:
             st.warning("Please add at least one ride to predict.")
         else:
-            predictions_list = []
-
-            for _, row in edited_df.iterrows():
-                hour = row["hour"]
-                day = row["day"]
-                month = row["month"]
-
-                # Cyclical features
-                hour_sin = math.sin(2 * math.pi * hour / 24)
-                hour_cos = math.cos(2 * math.pi * hour / 24)
-                day_sin = math.sin(2 * math.pi * day / 31)
-                day_cos = math.cos(2 * math.pi * day / 31)
-                month_sin = math.sin(2 * math.pi * month / 12)
-                month_cos = math.cos(2 * math.pi * month / 12)
-
-                # Create input dict for model mapped to expected feature engineering features
-                input_dict = {
-                    "VendorID": 1.0,
-                    "passenger_count": float(row["passenger_count"]),
-                    "trip_distance": float(row["trip_distance"]),
-                    "RatecodeID": float(row["ratecode_id"]),
-                    "PULocationID": 132.0,
-                    "DOLocationID": 236.0,
-                    "payment_type": 1.0,
-                    "fare_amount": row["total_amount"]
-                    - row["airport_fee"]
-                    - row["congestion_surcharge"]
-                    - row["tolls_amount"],
-                    "extra": 0.0,
-                    "mta_tax": 0.5,
-                    "tolls_amount": float(row["tolls_amount"]),
-                    "improvement_surcharge": 0.3,
-                    "total_amount": float(row["total_amount"]),
-                    "congestion_surcharge": float(row["congestion_surcharge"]),
-                    "Airport_fee": float(row["airport_fee"]),
-                    "pickup_hour_sin": hour_sin,
-                    "pickup_hour_cos": hour_cos,
-                    "pickup_day_sin": day_sin,
-                    "pickup_day_cos": day_cos,
-                    "pickup_month_sin": month_sin,
-                    "pickup_month_cos": month_cos,
-                }
-                predictions_list.append(input_dict)
-
-            model_input_df = pd.DataFrame(predictions_list)
-
-            # Ensure exact columns
-            if hasattr(model, "feature_names_in_"):
-                expected_cols = model.feature_names_in_
-                for col in expected_cols:
-                    if col not in model_input_df.columns:
-                        model_input_df[col] = 0.0
-                model_input_df = model_input_df[expected_cols]
-
             try:
-                with st.spinner("Calculating..."):
-                    preds = model.predict(model_input_df)
+                with st.spinner("Routing prediction requests to FastAPI Backend..."):
+                    # Prepare the payload using the Pydantic schema structure
+                    payload = edited_df.to_dict(orient="records")
+
+                    response = requests.post(
+                        f"{API_URL}/predict", json=payload, timeout=5
+                    )
+                    response.raise_for_status()
+
+                    predictions_data = response.json()
+                    preds = [item["predicted_tip"] for item in predictions_data]
 
                 st.success(f"### Output For {len(preds)} Ride(s)")
 
