@@ -1,0 +1,35 @@
+name: Lint
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  version: "latest"
+                  enable-cache: true
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install Dependencies
+              run: uv sync --frozen
+
+            - name: Check code formatting (Ruff)
+              run: uv run ruff format --check .
+
+            - name: Lint code (Ruff)
+              run: uv run ruff check .

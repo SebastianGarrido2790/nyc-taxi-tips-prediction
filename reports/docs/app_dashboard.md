@@ -1,4 +1,4 @@
-# NYC Taxi Tips Predictor: App Architecture & Functionality
+# Phase 5: NYC Taxi Tips Predictor - App Architecture & Functionality
 
 ## 1. Executive Summary
 

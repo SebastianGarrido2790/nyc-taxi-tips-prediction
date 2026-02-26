@@ -12,6 +12,7 @@ Usage:
         uv run streamlit run app.py (Frontend UI)
 """
 
+import os
 import streamlit as st
 import pandas as pd
 import json
@@ -20,7 +21,7 @@ import plotly.express as px
 import yaml
 from pathlib import Path
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # Set page config
 st.set_page_config(
