@@ -5,9 +5,12 @@
   <img src="https://img.shields.io/badge/MLflow-Experiment_Tracking-0194E2?logo=mlflow&logoColor=white" alt="MLflow">
   <img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
   <img src="https://img.shields.io/badge/Pytest-Testing-0A9EDC?logo=pytest&logoColor=white" alt="Pytest">
+  <img src="https://img.shields.io/badge/FastAPI-Microservice-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions">
   
   <h1>🚕 NYC Taxi Tip Prediction System 🚕</h1>
-  <p><strong>A Production-Grade MLOps System implementing the strict FTI (Feature, Training, Inference) Pattern</strong></p>
+  <p><strong>A Production-Grade Agentic MLOps System implementing the strict FTI (Feature, Training, Inference) Pattern</strong></p>
 </div>
 
 ---
@@ -29,7 +32,8 @@ To ensure massive scalability, strict reproducibility, and readiness for batch p
 
 1. 🔵 **Feature Pipeline (Data Engineering):** Transforms raw, messy taxi logs into a pristine Feature Store. It manages missing values, prunes anomalies (e.g., negative fares, impossible distances), and intelligently engineers cyclical temporal features (Hour/Day/Month) via chunked or native Polars processing to securely handle massive datasets out-of-core.
 2. 🟠 **Training Pipeline (Model Development):** Operates on the engineered features to evaluate and identify the best predictive model. It actively utilizes **Temporal Splitting** (preventing disastrous look-ahead bias), benchmarks multiple algorithms simultaneously (XGBoost, Random Forest, Ridge, etc.), and cleanly registers the ultimate Champion Model using **MLflow**.
-3. 🟢 **Inference Pipeline (Model Serving):** A standalone batch prediction engine that applies the frozen Champion Model to fresh, unseen holdout data, fully simulating a production data warehouse ingestion process.
+3. 🟢 **Inference Pipeline (Model Serving):** A standalone batch prediction engine that applies the frozen Champion Model to fresh, unseen holdout data. Deployed natively as a **FastAPI** microservice, decoupling compute from rendering.
+4. 🤖 **Agentic Tool Abstraction:** A strict, deterministic Python interface built on top of the serving layer. Utilizing Pydantic for rigid input validation and custom exceptions for "Agentic Healing," it allows Large Language Models (LLMs) to natively integrate with the ML pipeline to orchestrate predictions.
 
 ---
 
@@ -89,6 +93,9 @@ The codebase actively emphasizes "Testing Logic, not external Libraries," relyin
 | **Experiment Tracking**| **MLflow** | Unobtrusive offline hyperparameter logging and local Model Registry governance. |
 | **Testing** | **Pytest** | Component-level behavior and logic evaluations. |
 | **Web Interface** | **Streamlit** | Rapid presentation layer displaying evaluation metrics and live inference engines. |
+| **Microservice** | **FastAPI** | High-performance, asynchronous REST API serving machine learning inferences reliably. |
+| **Containerization**| **Docker** | Encapsulates the frontend and backend services into isolated, reproducible execution environments. |
+| **CI/CD** | **GitHub Actions**| Automates deterministic unit testing and code quality (Ruff) gating on every push. |
 
 ---
 
@@ -116,13 +123,52 @@ uv run dvc pull
 uv run dvc repro
 ```
 
-### 3. Launching the App
-Interact natively with the trained artifacts using the Streamlit visual dashboard:
+### 3. Environment Configuration
+Create a `.env` file in the root directory to define the MLflow tracking URI and API configurations. Example `.env`:
+```env
+# Define the environment (local/staging/production)
+ENV=local
+
+# FTI ARCHITECTURE PATHS
+# Frontend API reference. For local development, use localhost.
+# In Docker, `docker-compose.yml` automatically overrides this to `http://backend:8000`.
+API_URL=http://localhost:8000
+
+# MLFLOW TRACKING CONFIGURATION
+# Set to remote host URL, network-based tracking (http://127.0.0.1:5000), or local file-based:
+MLFLOW_TRACKING_URI=file:./mlruns
+```
+
+### 4. Launching the App (Local Dev)
+Interact natively with the trained artifacts using the Streamlit visual dashboard.
+
+**Option A - Automated Launch (Windows)**:
+You can rapidly spin up both the FastAPI backend and Streamlit frontend using the provided batch script:
+```cmd
+.\launch_app.bat
+```
+
+**Option B - Manual Launch**:
+Run the backend and frontend simultaneously in separate terminals:
 ```bash
+# Start the FastAPI backend
+uv run uvicorn src.api.predict_api:app --reload --port 8000
+
+# Start the Streamlit frontend (in a new terminal)
 uv run streamlit run app.py
+```
+
+### 5. Production Deployment (Docker Compose)
+Launch the entire system inside isolated, network-meshed containers:
+```bash
+# Build and spin up the services
+docker-compose up --build -d
+
+# The Streamlit dashboard is now live at http://localhost:8501
+# The FastAPI Swagger docs are live at http://localhost:8000/docs
 ```
 
 <br>
 <div align="center">
-  <i>Developed applying the <b>"Antigravity" Stack Principles</b> for Professional Agentic Data Science</i>
+  <i>Developed applying the <b>MLOps Stack Principles</b> for Professional Agentic Data Science</i>
 </div>

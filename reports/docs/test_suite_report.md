@@ -18,7 +18,8 @@ tests/
     ├── test_model_evaluation.py
     ├── test_model_trainer.py
     ├── test_predict_model.py
-    └── test_api.py
+    ├── test_api.py
+    └── test_agent_tools.py
 ```
 
 ## 3. Testing Architecture
@@ -102,6 +103,18 @@ This suite validates the FastAPI Serving Layer (Inference API).
 | `test_predict_feature_importance_no_model` | Exercises the `/feature-importance` endpoint directly to observe its resilience when lifespans fail/skip. | Ensure system survives unhandled model load crashes. |
 | `test_predict_endpoint_success` | Injects valid ride characteristics payload over HTTP into FastAPI handler. | Validate 100% End-to-End serialization from HTTP -> JSON -> Pandas -> ML -> JSON. |
 
+#### 3.2.8 Agent Tools Tests (`tests/unit/test_agent_tools.py`)
+This suite validates the strict deterministic boundaries of the new `TaxiPredictionTool` abstraction to prevent silent LLM failures.
+
+| Test Case | Description | Goal |
+| :--- | :--- | :--- |
+| `test_pydantic_schema_validation_success` | Validates that acceptable tool arguments execute successfully. | Ensure strict structural adherence to API contracts. |
+| `test_pydantic_schema_validation_failure` | Injects LLM hallucinations (e.g., negative distances, invalid hours). | Force aggressive failure via Pydantic `ValidationError` *before* hitting network layer. |
+| `test_tool_predict_success` | Mocks a positive HTTP response from the backend. | Verify data serialization and retrieval works flawlessly for Agents. |
+| `test_tool_predict_timeout` | Simulates a backend that hangs infinitely. | Ensure the tool deliberately throws a domain-specific `PredictionToolError` instead of crashing. |
+| `test_tool_predict_http_error` | Simulates HTTP 500 errors from the backend. | Intercept standard library errors and inject domain metadata for Agentic healing logic. |
+| `test_tool_predict_empty_list` | Passes an empty list to the predict method. | Force fast-fail logic to save compute resources. |
+
 ## 4. Execution
 To run the full suite:
 ```bash
@@ -121,15 +134,16 @@ platform win32 -- Python 3.11.13, pytest-9.0.2, pluggy-1.6.0
 rootdir: C:\Users\sebas\Desktop\nyc-taxi-tips-prediction
 configfile: pyproject.toml
 plugins: anyio-4.12.1, hydra-core-1.3.2
-collected 23 items
+collected 29 items
 
-tests\unit\test_data_ingestion.py .                                      [  4%]
-tests\unit\test_data_transformation.py ......                            [ 30%]
-tests\unit\test_feature_engineering.py ...                               [ 43%]
-tests\unit\test_model_evaluation.py ..                                   [ 52%]
-tests\unit\test_model_trainer.py ....                                    [ 69%]
-tests\unit\test_predict_model.py ...                                     [ 82%]
-tests\unit\test_api.py ....                                              [100%]
+tests\unit\test_agent_tools.py ......                                    [ 20%]
+tests\unit\test_api.py ....                                              [ 34%]
+tests\unit\test_data_ingestion.py .                                      [ 37%]
+tests\unit\test_data_transformation.py ......                            [ 58%]
+tests\unit\test_feature_engineering.py ...                               [ 68%]
+tests\unit\test_model_evaluation.py ..                                   [ 75%]
+tests\unit\test_model_trainer.py ....                                    [ 89%]
+tests\unit\test_predict_model.py ...                                     [100%]
 
-============================= 23 passed in 11.20s ==============================
+============================= 29 passed in 10.35s ==============================
 ```
