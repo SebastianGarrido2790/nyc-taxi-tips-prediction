@@ -1,3 +1,6 @@
+# -----------------------------------------------------------------------------
+# THE BRAWN: Deterministic Model Serving (FastAPI FTI Engine)
+# -----------------------------------------------------------------------------
 FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
 # Set working directory

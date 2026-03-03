@@ -1,6 +1,9 @@
 version: "3.8"
 
 services:
+  # ---------------------------------------------------------------------------
+  # THE BRAWN: Deterministic Model Serving (FastAPI FTI Engine)
+  # ---------------------------------------------------------------------------
   backend:
     build:
       context: .
@@ -21,6 +24,9 @@ services:
     networks:
       - nyc-taxi-net
 
+  # ---------------------------------------------------------------------------
+  # THE BRAIN: Agentic Chat UI (LangGraph + Gemini-2.5-flash)
+  # ---------------------------------------------------------------------------
   frontend:
     build:
       context: .
@@ -29,6 +35,8 @@ services:
       - "8501:8501"
     environment:
       - API_URL=http://backend:8000
+      # Required for the Agentic Taxi Analyst to orchestrate the ReAct workflow
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     depends_on:
       backend:
         condition: service_healthy

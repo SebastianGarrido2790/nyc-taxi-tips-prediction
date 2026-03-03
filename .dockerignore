@@ -34,6 +34,8 @@ htmlcov/
 .DS_Store
 
 # Secrets & Configuration (CRITICAL)
+# Note: GOOGLE_API_KEY required for the LangGraph Agentic UI (Gemini-2.5-flash)
+# must be injected via docker-compose environment since .env is ignored.
 .env
 .env.test
 .env.local
