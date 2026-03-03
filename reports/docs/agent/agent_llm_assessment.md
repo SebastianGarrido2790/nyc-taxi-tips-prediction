@@ -23,32 +23,80 @@ For this portfolio project—upgrading the NYC Taxi Tips Predictor to an Agentic
   - LangGraph has a slight learning curve if you're new to graph-based agents. Mitigate by starting with their quickstart examples (e.g., a simple tool-calling graph).
   - Dependency overhead: Minimal (~5-10 packages), and `uv` handles it efficiently.
 
-### Recommended LLM Provider: OpenAI (with GPT-4o-mini as Default Model)
+### Recommended Model: **gemini-2.5-flash** (or gemini-2.5-flash-latest if available)
 
-#### Why OpenAI?
-- **Practicality and Integration**:
-  - Seamless with LangGraph/LangChain via `langchain-openai`. It supports structured outputs (e.g., JSON for tool calls) natively, ensuring the agent reliably extracts `TaxiRideInput` fields from chat messages without hallucination risks.
-  - Cost-effective for a portfolio: GPT-4o-mini is ~$0.15/1M input tokens, making experimentation cheap. It handles the use case (natural language parsing + tool invocation) with high accuracy.
-  - API key setup: Read `OPENAI_API_KEY` from `.env` (already in the project). No vendor lock-in—LangGraph supports swapping to other providers easily.
+For this portfolio project (NYC Taxi Tip Prediction with LangGraph agentic chat UI), switching from OpenAI to **Google Gemini** is a practical choice given the expired free quota. Gemini offers native function calling (called "tool use" or "function calling" in their docs), strong structured output support, and generous free tier access via the Gemini API.
 
-- **Comparison to Alternatives**:
-  - **Anthropic (Claude-3.5-Sonnet)**: Excellent for reasoning (often outperforms GPT-4o in benchmarks), but more expensive (~$3/1M input tokens) and requires `langchain-anthropic`. Use if you prioritize ethical alignment or complex logic; otherwise, overkill for this project.
-  - **Grok/xAI**: Innovative choice (aligns with the use of Grok for queries), but lacks mature LangChain integration. If you want to experiment, use a custom adapter—encourages creativity but adds setup time.
-  - **Others (e.g., Google Gemini, Meta Llama)**: Gemini is comparable but has inconsistent tool-calling; open-source like Llama requires self-hosting (e.g., via Ollama), complicating the MLOps stack.
+#### Why this model?
+- **Tool/Function Calling Quality**  
+  Gemini 2.5 Flash shows strong performance on agentic workflows, multi-turn tool use, and reliable structured parameter extraction — critical for the `predict_taxi_tip` tool that expects a list of `TaxiRideInput` objects.  
+  Recent 2025–2026 comparisons place the 2.5 family ahead of 1.5 Flash/Pro in speed + reliability for tool-augmented agents, while being very close to (or occasionally surpassing) heavier models on practical function-calling tasks.
 
-- **Educational and Portfolio Benefits**:
-  - OpenAI is the industry standard for agentic prototypes, showcasing the ability to integrate production-grade LLMs. Start with GPT-4o-mini for speed/cost, upgrade to GPT-4o for better multi-turn handling if needed.
-  - Neutral: It's unbiased and widely accessible; no sugar-coating—monitor costs via their dashboard.
+- **Speed and Latency**  
+  Extremely low latency and high tokens-per-second output — ideal for a responsive Streamlit chat UI. Users expect near-instant replies in a demo/portfolio app; 2.5 Flash delivers this without noticeable degradation in the use case (natural language → structured ride features → single tool call).
 
-- **Potential Drawbacks and Mitigations**:
-  - Rate limits/API costs: Use mini models and cache responses in development. For free tiers, consider Grok if integrated.
-  - Privacy: The taxi data is synthetic/simulated, so no issues; always anonymize in production.
+- **Cost (Free Tier & Paid)**  
+  - **Free tier** (via Google AI Studio or gemini.google.com API key) is very usable for development and portfolio demos — much higher daily limits than OpenAI's expired free quota.  
+  - Paid pricing is among the lowest in the industry (often cheaper than GPT-4o-mini equivalents for mixed workloads).  
+  → Perfect for experimentation without burning budget.
 
-#### Configuration Tip
-In `.env`:
-```
-OPENAI_API_KEY=sk-...
-```
-In code: `llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)` (low temperature for deterministic outputs).
+- **Context Window & Multimodality**  
+  1 million token context in the 2.5 family gives huge headroom (far beyond what the taxi chat needs), and native multimodal support is a bonus if you later want to add image inputs (e.g., map screenshots).
 
-This combination (LangGraph + OpenAI GPT-4o-mini) keeps the project practical, innovative, and aligned with MLOps principles.
+- **LangChain / LangGraph Integration**  
+  Excellent — use `langchain-google-genai` package.  
+  The binding syntax is very similar to OpenAI:
+
+  ```python
+  from langchain_google_genai import ChatGoogleGenerativeAI
+
+  llm = ChatGoogleGenerativeAI(
+      model="gemini-2.5-flash",          # or gemini-2.5-flash-latest
+      temperature=0.0,
+      google_api_key=os.getenv("GOOGLE_API_KEY")
+  )
+  ```
+
+  Tool calling works via `.bind_tools()` — almost identical to the current OpenAI setup.
+
+#### Comparison Table (Relevant 2025–2026 Context)
+
+| Model                  | Tool Calling Reliability | Speed / Latency | Free Tier Generosity | Cost Efficiency (paid) | Best For This Project? |
+|-----------------------|---------------------------|-----------------|-----------------------|------------------------|------------------------|
+| gemini-2.5-flash      | Very good–excellent       | Excellent       | High                  | Best                   | **Yes — recommended**  |
+| gemini-2.5-pro        | Excellent                 | Good            | Lower limits          | Higher                 | If you need deeper reasoning |
+| gemini-1.5-flash      | Good                      | Very good       | High                  | Good                   | Acceptable fallback    |
+| gemini-1.5-pro        | Very good                 | Moderate        | Moderate              | Moderate               | Older, slower          |
+| gemini-3-flash-preview| Strong (preview)          | Very good       | Variable              | ?                      | Riskier for portfolio stability |
+
+#### Migration Steps (Minimal Changes)
+1. **Get API Key**  
+   Go to https://aistudio.google.com/app/apikey → create key (free).
+
+2. **Update .env**  
+   Replace `OPENAI_API_KEY` line with:
+   ```
+   GOOGLE_API_KEY=AIza...
+   ```
+
+3. **Install dependency**  
+   ```bash
+   uv add langchain-google-genai
+   ```
+
+4. **Change LLM import & instantiation** in `src/agents/taxi_analyst_agent.py`  
+   Replace `ChatOpenAI(...)` with `ChatGoogleGenerativeAI(...)` as shown above.
+
+5. **Test tool calling**  
+   The `@tool` decorator + `.bind_tools()` pattern should work unchanged.  
+   Run the unit tests first (they mock the LLM anyway), then do manual E2E chat.
+
+6. **Prompt / System message**  
+   Gemini is slightly more literal than GPT-4o-mini. If extraction becomes inconsistent, strengthen the system prompt with explicit examples of how to format the tool input (list of dicts matching `TaxiRideInput` fields).
+
+#### When to consider gemini-2.5-pro instead
+- The agent frequently fails to extract all ride fields correctly on ambiguous inputs  
+- You want noticeably better multi-turn clarification ("Which airport? JFK or Newark?")  
+- You're ok with ~2–4× higher latency and lower free-tier throughput
+
+For a portfolio project focused on clean MLOps + agentic demonstration, **gemini-2.5-flash** gives the best balance of reliability, speed, cost, and "wow" factor in live demos.

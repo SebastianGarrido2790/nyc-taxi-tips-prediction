@@ -19,7 +19,7 @@ tests/
     ├── test_model_trainer.py
     ├── test_predict_model.py
     ├── test_api.py
-    └── test_agent_tools.py
+    └── test_taxi_analyst_agent.py
 ```
 
 ## 3. Testing Architecture
@@ -103,7 +103,7 @@ This suite validates the FastAPI Serving Layer (Inference API).
 | `test_predict_feature_importance_no_model` | Exercises the `/feature-importance` endpoint directly to observe its resilience when lifespans fail/skip. | Ensure system survives unhandled model load crashes. |
 | `test_predict_endpoint_success` | Injects valid ride characteristics payload over HTTP into FastAPI handler. | Validate 100% End-to-End serialization from HTTP -> JSON -> Pandas -> ML -> JSON. |
 
-#### 3.2.8 Agent Tools Tests (`tests/unit/test_agent_tools.py`)
+#### 3.2.8 Agent Tools Tests (`tests/unit/test_taxi_analyst_agent.py`)
 This suite validates the strict deterministic boundaries of the new `TaxiPredictionTool` abstraction to prevent silent LLM failures.
 
 | Test Case | Description | Goal |

@@ -354,228 +354,127 @@ if page == "📊 Dashboard & Evaluation":
                 "* **2:** VeriFone Inc."
             )
 
-# --- PAGE 2: Interactive Prediction ---
+# --- PAGE 2: Agentic Chat UI ---
 elif page == "⚡ Interactive Prediction":
-    col_head, col_btn = st.columns([5, 1])
-    with col_head:
-        st.header("Simulate a Ride")
-        st.markdown(
-            "Input ride characteristics below to get a real-time tip prediction from the model. *You can add or specify multiple rows to run batch predictions!*"
+    from dotenv import load_dotenv
+    from src.agents.taxi_analyst_agent import AgentConfigError, get_taxi_analyst_agent
+
+    load_dotenv()  # Ensure .env is loaded (idempotent; safe to call multiple times)
+
+    st.header("🤖 Agentic Taxi Analyst")
+    st.markdown(
+        "Chat naturally with the **Agentic Taxi Analyst** — describe your ride and get an "
+        "ML-powered tip prediction, or ask any NYC taxi question."
+    )
+
+    # --- Session State Initialisation ---
+    if "messages" not in st.session_state:
+        st.session_state.messages: list[dict] = []
+
+    # Lazy-load the compiled LangGraph agent once per browser session
+    if "agent" not in st.session_state:
+        try:
+            st.session_state.agent = get_taxi_analyst_agent()
+        except AgentConfigError as cfg_err:
+            st.session_state.agent = None
+            st.session_state.agent_error = str(cfg_err)
+
+    # --- API Key Missing Banner ---
+    if st.session_state.get("agent") is None:
+        st.error(
+            f"⚠️ **Agent not initialised:** {st.session_state.get('agent_error', 'Unknown configuration error.')}  \n"
+            "Open `.env`, set `GOOGLE_API_KEY=AIza<your-key>`, and restart the app.",
+            icon="🔑",
         )
-    with col_btn:
-        st.write("")  # Adjust vertical alignment
-        if st.button("🔄 Reset Details", use_container_width=True):
-            if "input_df" in st.session_state:
-                del st.session_state["input_df"]
-            if "editor_key" in st.session_state:
-                del st.session_state["editor_key"]
+        st.stop()
+
+    # --- Toolbar ---
+    col_title, col_clear = st.columns([5, 1])
+    with col_clear:
+        if st.button("🗑️ Clear Chat", use_container_width=True):
+            st.session_state.messages = []
             st.rerun()
 
-    # Base characteristics layout replaced with an editable dataframe using column_config
-    if "input_df" not in st.session_state:
-        st.session_state.input_df = pd.DataFrame(
-            [
-                {
-                    "trip_distance": 2.5,
-                    "total_amount": 15.0,
-                    "passenger_count": 1,
-                    "ratecode_id": 1,
-                    "airport_fee": 0.0,
-                    "congestion_surcharge": 2.5,
-                    "tolls_amount": 0.0,
-                    "hour": 12,
-                    "day": 15,
-                    "month": 1,
-                }
-            ]
-        )
+    st.markdown("---")
 
-    with st.form("prediction_form"):
-        st.subheader("Trip Details (Editable)")
-        st.caption(
-            "Double-click any cell to adjust features. Use the '+' below the table to add more rides."
-        )
+    # --- Chat History ---
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-        edited_df = st.data_editor(
-            st.session_state.input_df,
-            num_rows="dynamic",
-            use_container_width=True,
-            column_config={
-                "trip_distance": st.column_config.NumberColumn(
-                    "Distance (miles)",
-                    min_value=0.1,
-                    max_value=100.0,
-                    step=0.1,
-                    format="%.1f",
-                    help="Total distance of the ride in miles.",
-                    default=2.5,
-                    required=True,
-                ),
-                "total_amount": st.column_config.NumberColumn(
-                    "Total Fare ($)",
-                    min_value=1.0,
-                    max_value=500.0,
-                    step=0.5,
-                    format="$ %.2f",
-                    help="Total amount charged to the passenger, excluding tip.",
-                    default=15.0,
-                ),
-                "passenger_count": st.column_config.NumberColumn(
-                    "Passengers",
-                    min_value=1,
-                    max_value=6,
-                    step=1,
-                    help="Number of passengers in the vehicle.",
-                    default=1,
-                ),
-                "ratecode_id": st.column_config.SelectboxColumn(
-                    "Rate Code",
-                    options=[1, 2, 3, 4, 5, 6, 99],
-                    help="Final rate code in effect (e.g., 1 for Standard, 2 for JFK).",
-                    default=1,
-                ),
-                "airport_fee": st.column_config.NumberColumn(
-                    "Airport Fee ($)",
-                    min_value=0.0,
-                    max_value=5.0,
-                    step=1.25,
-                    format="$ %.2f",
-                    help="Additional fee for airport trips.",
-                    default=0.0,
-                ),
-                "congestion_surcharge": st.column_config.NumberColumn(
-                    "Congestion ($)",
-                    min_value=0.0,
-                    max_value=5.0,
-                    step=2.5,
-                    format="$ %.2f",
-                    help="Surcharge for entering the Manhattan congestion zone.",
-                    default=2.5,
-                ),
-                "tolls_amount": st.column_config.NumberColumn(
-                    "Tolls ($)",
-                    min_value=0.0,
-                    max_value=50.0,
-                    step=0.5,
-                    format="$ %.2f",
-                    help="Total amount of all tolls paid in trip.",
-                    default=0.0,
-                ),
-                "hour": st.column_config.NumberColumn(
-                    "Pickup Hour",
-                    min_value=0,
-                    max_value=23,
-                    step=1,
-                    help="Hour of the day when the meter was engaged (0-23).",
-                    default=12,
-                ),
-                "day": st.column_config.NumberColumn(
-                    "Day of Month",
-                    min_value=1,
-                    max_value=31,
-                    step=1,
-                    help="Day of the month when the trip started.",
-                    default=15,
-                ),
-                "month": st.column_config.NumberColumn(
-                    "Month",
-                    min_value=1,
-                    max_value=12,
-                    step=1,
-                    help="Month of the year (1-12).",
-                    default=1,
-                ),
-            },
-            key="editor_key",
-        )
+    # --- Chat Input ---
+    user_input = st.chat_input(
+        "Describe your ride or ask a question… e.g. 'Predict a tip for a 5-mile JFK trip at 3 PM, $25 fare, 2 passengers.'"
+    )
 
-        submitted = st.form_submit_button("Predict Tip(s) 🔮")
+    if user_input:
+        # Append and render the user's message immediately
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
 
-    if submitted:
-        # Save dataframe to session state so it persists across renders
-        st.session_state.input_df = edited_df.reset_index(drop=True)
-        if len(edited_df) == 0:
-            st.warning("Please add at least one ride to predict.")
-        else:
-            try:
-                with st.spinner("Routing prediction requests to FastAPI Backend..."):
-                    # Prepare the payload using the Pydantic schema structure
-                    payload = edited_df.to_dict(orient="records")
+        # --- Agent Invocation ---
+        with st.chat_message("assistant"):
+            with st.spinner("Analysing your request…"):
+                try:
+                    # Construct the full conversation history for LangGraph's state
+                    langchain_history = []
+                    for m in st.session_state.messages:
+                        if m["role"] == "user":
+                            langchain_history.append(("human", m["content"]))
+                        elif m["role"] == "assistant":
+                            langchain_history.append(("ai", m["content"]))
 
-                    response = requests.post(
-                        f"{API_URL}/predict", json=payload, timeout=5
+                    result = st.session_state.agent.invoke(
+                        {"messages": langchain_history}
                     )
-                    response.raise_for_status()
 
-                    predictions_data = response.json()
-                    preds = [item["predicted_tip"] for item in predictions_data]
+                    # The last message in the graph output is the assistant's reply
+                    msg = result["messages"][-1]
+                    raw_content = msg.content
 
-                st.success(f"### Output For {len(preds)} Ride(s)")
+                    if isinstance(raw_content, list):
+                        # Extract and join all 'text' parts (handles Gemini's block-based format)
+                        assistant_reply = "".join(
+                            [
+                                part.get("text", "")
+                                for part in raw_content
+                                if isinstance(part, dict) and part.get("type") == "text"
+                            ]
+                        )
+                    else:
+                        assistant_reply = str(raw_content)
+                except Exception as agent_err:
+                    err_name = type(agent_err).__name__
+                    if (
+                        "RateLimitError" in err_name
+                        or "quota" in str(agent_err).lower()
+                        or "RESOURCE_EXHAUSTED" in str(agent_err)
+                    ):
+                        assistant_reply = (
+                            f"⚠️ **Brain Error (Google Quota):**\n\n"
+                            f"`{err_name}: {agent_err}`\n\n"
+                            "It looks like your **Google API Key** has hit a rate limit. "
+                            "Please check your usage at [Google AI Studio](https://aistudio.google.com/app/apikey)."
+                        )
+                    elif "ConnectionError" in err_name or "localhost:8000" in str(
+                        agent_err
+                    ):
+                        assistant_reply = (
+                            f"⚠️ **Brawn Error (FastAPI Offline):**\n\n"
+                            f"`{err_name}: {agent_err}`\n\n"
+                            "The analyst can't reach the tip prediction model. Please ensure the **FastAPI backend** "
+                            "is running (`uv run uvicorn src.api.predict_api:app --reload`)."
+                        )
+                    else:
+                        assistant_reply = (
+                            f"⚠️ **The analyst encountered an unexpected error:**\n\n"
+                            f"`{err_name}: {agent_err}`\n\n"
+                            "Check your `.env` configuration or ensure all backend services are active."
+                        )
 
-                # Combine input config and predictions to show explicit results
-                results_df = edited_df.copy()
-                results_df["predicted_tip"] = preds
-                results_df["tip_percentage"] = (
-                    results_df["predicted_tip"] / results_df["total_amount"]
-                ) * 100
+            st.markdown(assistant_reply)
 
-                # Calculate averages for the batch
-                avg_tip = results_df["predicted_tip"].mean()
-                avg_pct = results_df["tip_percentage"].mean()
-
-                st.markdown("##### 📊 Batch Prediction Averages")
-                col_m1, col_m2 = st.columns(2)
-                with col_m1:
-                    st.metric("Average Expected Tip", f"$ {avg_tip:.2f}")
-                with col_m2:
-                    st.metric("Average Tip Percentage", f"{avg_pct:.1f} %")
-
-                st.write("")  # spacing
-                disp_cols = [
-                    "total_amount",
-                    "trip_distance",
-                    "passenger_count",
-                    "predicted_tip",
-                    "tip_percentage",
-                ]
-
-                # Highlight prediction outcome columns using pandas Styler
-                styled_df = (
-                    results_df[disp_cols]
-                    .style.set_properties(
-                        subset=["predicted_tip", "tip_percentage"],
-                        **{
-                            "background-color": "rgba(255, 215, 0, 0.15)",
-                            "color": "#FFD700",
-                            "font-weight": "bold",
-                        },
-                    )
-                    .hide(axis="index")
-                )
-
-                # Display Results beautifully using column_config
-                st.dataframe(
-                    styled_df,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "total_amount": st.column_config.NumberColumn(
-                            "Total Fare Baseline", format="$ %.2f"
-                        ),
-                        "trip_distance": st.column_config.NumberColumn(
-                            "Distance (miles)", format="%.1f"
-                        ),
-                        "passenger_count": st.column_config.NumberColumn("Passengers"),
-                        "predicted_tip": st.column_config.NumberColumn(
-                            "Expected Tip", format="$ %.2f"
-                        ),
-                        "tip_percentage": st.column_config.NumberColumn(
-                            "Tip %", format="%.1f %%"
-                        ),
-                    },
-                )
-
-            except Exception as e:
-                st.error(
-                    f"Prediction failed. Ensure model input shapes match. Error: {e}"
-                )
+        st.session_state.messages.append(
+            {"role": "assistant", "content": assistant_reply}
+        )

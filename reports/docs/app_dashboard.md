@@ -47,24 +47,25 @@ Dedicated to high-level analytics, model transparency, and offline batch predict
 *   **Test Metrics & Weights:** Read-only metric cards visually report Test MAE, MSE, and R², alongside the specific weight distribution that configured the algorithm.
 
 ### Page 2: Interactive Prediction
-This page allows users to simulate taxi rides and query the champion model's REST API in real-time. It is designed heavily around a frictionless, dynamically editable batch-input experience.
+This page has been upgraded from a static form to an **Agentic Natural Language Chat UI**, transforming the interaction from manual data entry to a sophisticated conversational experience.
 
-*   **Simulate a Ride (Header & Controls):** 
-    *   The page introduces the predictive capabilities, explaining that users can either predict a single ride or add multiple rows to process batch inferences.
-    *   A prominent **"🔄 Reset Details"** button gracefully flushes the Streamlit session state, immediately clearing all user edits and resetting the interface to its clean, default single-row state.
+*   **The Agentic Taxi Analyst (The Brain):**
+    *   **Orchestration Engine:** Built using **LangGraph** to manage the "Reason-Act" (ReAct) loop, allowing the system to think, call tools, and respond dynamically.
+    *   **LLM Core:** Powered by **Google `gemini-2.5-flash`**, providing high-speed natural language understanding and structured intent extraction.
+    *   **Contextual Memory:** The agent maintains a persistent message history, enabling it to remember trip details across multiple turns and respond to follow-up prompts without requesting redundant information.
 
-*   **Interactive Trip Details (`st.data_editor`):** Instead of using a long, vertical form of static input fields, users manage ride features via an interactive, horizontal spreadsheet-like table.
-    *   **Input Features:** The table exposes ten critical trip characteristics for editing, including Distance (miles), Total Fare ($), Passengers, Rate Code, and fine-grained charges like Airport Fee and Congestion Surcharge, alongside the temporal data (Hour, Day, Month).
-    *   **Batch Capability:** Users can swiftly append new rows via the `+` icon at the bottom of the table to simulate multiple different scenarios simultaneously.
-    *   **Rich Column Configuration:** Strict constraints (min, max, step, format) are enforced natively via Streamlit's `column_config` API, ensuring that inputs are sanitized before they ever reach the backend Pydantic validation schemas. Helpful tooltips describe each column upon hover.
-    *   **Native Deletion:** Invalid rows are effortlessly deleted by selecting the built-in left-hand checkboxes and clicking the native toolbar's trash (`🗑️`) icon.
+*   **Intelligent Interaction Logic:**
+    *   **Frictionless Prediction:** Adhering to "Fast-Action UX" principles, the analyst only requires two critical fields to proceed: **Trip Distance** and **Total Fare** (excluding tip).
+    *   **Sensible Defaults:** To ensure immediate value, the agent automatically fills non-essential parameters (e.g., passenger count, rate code, time of day) with sensible defaults if they are not provided by the user.
+    *   **Refinement Opportunities:** After providing a prediction based on assumptions, the agent transparently informs the user of the defaults used and proactively lists optional features (like Airport Fees or Congestion Surcharges) that can be supplied for a more surgical prediction.
 
-*   **Execution & API Routing:** Upon clicking the **"Predict Tip(s) 🔮"** button, the UI serializes the entire dataframe into a JSON payload and executes a single HTTP `requests.post()` call to the `/predict` FastAPI endpoint. This delegates all data transformations (like cyclical time encoding) and model processing to the backend microservice.
+*   **Hardened Tool Integration (The Brawn):**
+    *   **The `predict_taxi_tip` Tool:** The agent delegates the actual machine learning inference to a deterministic Python tool. This tool enforces strict **Pydantic validation** on extracted parameters before they ever reach the ML model.
+    *   **Agentic Healing:** If the FastAPI backend is offline or returns an error, the tool provides rich, descriptive error context. The "Brain" interprets these errors to provide helpful troubleshooting advice to the user rather than raw code tracebacks.
 
-*   **Comprehensive Output Architecture:** Once the FastAPI server returns the prediction array, the UI dynamically constructs a multi-layered results view:
-    *   **Success Banner:** A clear visual indicator (e.g., `Output For 2 Ride(s)`) confirms successful execution.
-    *   **Batch Prediction Averages:** High-level analytical `st.metric` cards automatically calculate and visualize the arithmetic mean of both the expected dollar amount and the Tip Percentage across the entire submitted batch of rides.
-    *   **Stylized Output Frame:** The individual predictions are appended to the inputs and displayed in a finalized table. This dataframe utilizes Pandas `Styler` object properties to apply a bold gold background specifically to the prediction outcome columns (`Expected Tip` and `Tip %`), creating quick visual isolation of the model's insights. The dataframe indices are hidden for a cleaner, dashboard-grade user experience.
+*   **Modern Chat Experience:**
+    *   **Responsive UI:** Leverages Streamlit's native `st.chat_message` and `st.chat_input` components for a premium, mobile-friendly interface.
+    *   **Rich Formatting:** Automatically handles currency escaping (e.g., `\$`) and markdown styling to ensure predictions and explanations are visually clear and professional.
 
 ## 5. Design & Aesthetics
 
