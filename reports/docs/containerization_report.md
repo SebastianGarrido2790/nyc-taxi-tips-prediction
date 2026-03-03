@@ -1,26 +1,28 @@
-# Phase 6.1: Deployment - Docker Containerization Report
+# Phase 6.1: Deployment - Agentic Docker Containerization Report
 
 ## 1. Objective
 The goal of Phase 6.1 was to containerize the NYC Taxi Tips Prediction application as part of the deployment process. This involved taking the decoupled architecture established in Phase 5 (FastAPI backend and Streamlit frontend) and encapsulating it within isolated, reproducible Docker containers. Finally, these containers were orchestrated to run seamlessly together using Docker Compose.
 
-## 2. Docker Architecture
-
-The architecture adheres strictly to the FTI (Feature, Training, Inference) MLOps pattern, keeping the inference server (`backend`) physically isolated from the user interface (`frontend`).
+## 2. Agentic Docker Architecture (Brain vs. Brawn)
+ 
+The architecture adheres strictly to the **Agentic System Architect** principles, decoupling the system into two distinct microservices that communicate via a bridge network:
+*   **The Brain (Frontend)**: Handles probabilistic reasoning and the LangGraph workflow.
+*   **The Brawn (Backend)**: Handles deterministic ML inference and FTI logic.
 
 ### 2.1 Base Images & `uv` Optimization
 Both Dockerfiles utilize the `ghcr.io/astral-sh/uv:python3.11-bookworm-slim` base image.
 *   **Why `uv`?** `uv` is an extremely fast package manager written in Rust. By using this image, we leverage `uv sync --frozen` to ensure deterministic, reproducible builds that install dependencies orders of magnitude faster than standard `pip`.
 *   **Why `slim`?** The `bookworm-slim` variant removes unnecessary operating system packages (like compilers and curl), drastically reducing the final image footprint and attack surface.
 
-### 2.2 Backend Container (`docker/backend.Dockerfile`)
+### 2.2 The Brawn: Backend Container (`docker/backend.Dockerfile`)
 *   **Purpose:** Hosts the FastAPI inference server.
 *   **Payload:** Copies only the necessary code (`src/`, `config/`), lockfiles, and the trained model/metadata (`artifacts/`).
-*   **Execution:** Runs `uvicorn` on port `8000`.
-
-### 2.3 Frontend Container (`docker/frontend.Dockerfile`)
-*   **Purpose:** Hosts the Streamlit interactive dashboard.
-*   **Payload:** Copies the UI code (`app.py`), reports (for assets like logos), and configuration.
-*   **Execution:** Runs `streamlit run app.py` on port `8501`.
+*   **Execution:** Runs `uvicorn` on port `8000`. It acts as the deterministic execution layer for the Agent.
+ 
+### 2.3 The Brain: Frontend Container (`docker/frontend.Dockerfile`)
+*   **Purpose:** Hosts the Streamlit interactive dashboard and the LangGraph Agentic Analyst.
+*   **Payload:** Copies the UI code (`app.py`), agents (`src/agents/`), tools, and reports.
+*   **Execution:** Runs `streamlit run app.py`. It orchestrates the ReAct pattern using Gemini-2.5-flash.
 
 ## 3. Orchestration Details (`docker-compose.yml`)
 
@@ -28,10 +30,10 @@ The `docker-compose.yml` file acts as the maestro, bringing both images online a
 
 | Service | Configuration Highlight | Purpose |
 | :--- | :--- | :--- |
-| **Network** | `nyc-taxi-net` (bridge) | A private, isolated network allowing containers to discover and communicate with each other by service name, rather than IP address. |
-| **Backend** | `healthcheck` via `python urllib` | Continuously polls the `/health` endpoint every 10 seconds. We specifically used Python's `urllib` instead of `curl` because `curl` deliberately does not exist in our hardened `slim` image. |
-| **Frontend** | `depends_on: condition: service_healthy` | Ensures the Streamlit UI does not even attempt to boot up until the backend has successfully loaded the ML model into memory and passed its health probe. |
-| **Frontend** | `environment: API_URL=http://backend:8000` | Dynamically injects the backend's internal network address into the `app.py` script. This overrides the default `localhost:8000` fallback used for local development. |
+| **Network** | `nyc-taxi-net` (bridge) | A private network allowing the "Brain" and "Brawn" to communicate securely. |
+| **Backend** | `healthcheck` via `python urllib` | Ensures the model is loaded before the agent starts requesting predictions. |
+| **Frontend** | `GOOGLE_API_KEY=${GOOGLE_API_KEY}` | **Agentic Injection**: Necessary to power the Gemini-2.5-flash model for natural language parsing. |
+| **Frontend** | `environment: API_URL=http://backend:8000` | Points the agent to its deterministic tools (Brawn). |
 
 ## 4. Build Context Optimization (`.dockerignore`)
 
@@ -87,3 +89,9 @@ Here are some essential `docker compose` commands for interacting with the conta
     ```bash
     docker compose down -v
     ```
+
+## 7. Workflow Overview
+
+![CI/CD Pipeline Architecture](../figures/ci_cd.png)
+
+*Figure 1: Visual representation of the Agentic CI/CD flow connecting the local Docker environment to the remote repository standards.*
