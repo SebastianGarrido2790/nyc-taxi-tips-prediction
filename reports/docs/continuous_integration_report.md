@@ -19,6 +19,8 @@ We implemented two distinct, parallel workflows to separate testing logic from c
     4. Runs `uv sync --all-extras --frozen`.
     5. Executes the full `pytest` suite across the `tests/` directory.
 
+![Agentic CI: Automated Testing](../figures/agentic_ci_(brain_&_brawn).png)
+
 ### 2.2 Agentic Code Standards: Quality & Formatting Workflow (`.github/workflows/lint.yml`)
 *   **Purpose:** Enforces strict adherence to PEP-8 and the Agentic standard, ensuring no "spaghetti code" enters the production branch.
 *   **Triggers:** `push` and `pull_request` to `main`.
@@ -29,6 +31,8 @@ We implemented two distinct, parallel workflows to separate testing logic from c
     4. Runs `uv sync --all-extras --frozen`.
     5. **Formatting:** Executes `uv run ruff format --check .` to verify layout consistency (spacing, quotes, line lengths).
     6. **Linting:** Executes `uv run ruff check .` to catch logical errors, unused imports, and bad practices.
+
+![Agentic Code Standards: Quality Enforcement](../figures/agentic_code_standards_(lint).png)
 
 ## 3. The `uv` Advantage
 
@@ -43,9 +47,3 @@ During the implementation of these pipelines, the strict `ruff` linter immediate
 2.  An unused variable assignment (`trainer = ModelTrainer(...)`) in `tests/unit/test_model_trainer.py`.
 
 These were proactively fixed and committed. The CI pipelines now serve as an automated gatekeeper, preventing any similar code quality degradation in the future.
- 
-## 5. Architectural Flow
- 
-![CI/CD Pipeline Architecture](../figures/ci_cd.png)
- 
-*Figure 1: The automated lifecycle from code push to containerized validation.*

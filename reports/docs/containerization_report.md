@@ -89,9 +89,3 @@ Here are some essential `docker compose` commands for interacting with the conta
     ```bash
     docker compose down -v
     ```
-
-## 7. Workflow Overview
-
-![CI/CD Pipeline Architecture](../figures/ci_cd.png)
-
-*Figure 1: Visual representation of the Agentic CI/CD flow connecting the local Docker environment to the remote repository standards.*
