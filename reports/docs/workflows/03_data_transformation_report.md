@@ -37,7 +37,8 @@ flowchart TD
 ```
 
 ## 3. Why this is "Robust MLOps"
-*   **Garbage In, Garbage Out Prevention**: By enforcing strict physical constraints (e.g., minimum fare $3.70), we prevent the model from learning from refund transactions or system errors.
+*   **Garbage In, Garbage Out Prevention**: By enforcing strict physical constraints, we prevent the model from learning from refund transactions or system errors.
+*   **Configuration & Parameter Management**: Hardcoded filter thresholds (money, distances) were explicitly refactored out of the codebase and centralized into `config/params.yaml` under the `DataCleaning` section. The parameters are ingested and validated using strict Pydantic models (`DataTransformationConfig`), ensuring 100% type safety and runtime flexibility without code alterations.
 *   **Standardized Output**: The stage produces a single, validated artifact (`cleaned_trip_data.parquet`) that serves as the "Gold Standard" dataset for all subsequent experiements.
 *   **Auditable Logic**: Every filtering decision is logged, providing transparency into how many records were dropped and why.
 
@@ -65,11 +66,11 @@ We apply strict "sanity checks" to the data:
     - **The Anomalies**:
         - **Low End**: The data showed minimum total amounts of $0, which is impossible given that the base fare for a customized cab is $3.00 before the meter even starts; anything less is inconsistent with NYC taxi rules.
         - **High End**: The data contains extreme outliers, including a maximum total amount of approximately $386,000 for a single trip, which is unrealistic.
-    - **The Solution (Filters)**: To fix these entry errors, the following logic was applied to keep only reasonable transaction amounts:
-        - **Minimum Fare**: Filter the rows to keep only total amounts of at least `$3.70`. This figure was derived by adding the $3.00 base fare to the approximate cost of the minimum distance trip (0.5 miles).
-        - **Maximum Fare**: Filter the rows to keep only total amounts under `$1,000`. This threshold was chosen to be "extra generous" to accommodate large tips while removing the massive six-figure outliers or data entry errors.
+    - **The Solution (Filters)**: To fix these entry errors, the logic extracts runtime constraints from the central `params.yaml` file:
+        - **Minimum Fare**: Filter the rows to keep only total amounts of at least `min_total_amount` (default `$3.70`).
+        - **Maximum Fare**: Filter the rows to keep only total amounts under `max_total_amount` (default `$1,000`).
 4.  **Trip Distance (Outliers)**: The data include extreme outliers, such as trips with 0 miles (likely stationary parking) and a trip of 350,000 miles (roughly 14 times the circumference of the Earth).
-    - **The Solution (Filters)**: To fix these entry errors, the following logic was applied to keep only realistic taxi trips: `0.5 miles < trip_distance < 100 miles`. Removes zero-distance trips (cancelled) and impossible long-distance errors.
+    - **The Solution (Filters)**: To fix these entry errors, the following logic keeps only realistic taxi trips using parameters extracted from `config/params.yaml`: `min_trip_distance < trip_distance < max_trip_distance` (default 0.5 to 100 miles). Removes zero-distance trips (cancelled) and impossible long-distance errors.
 
 ### 4.3. Robust Date Parsing
 We apply strict format parsing to handle AM/PM formats correctly, ensuring valid datetime objects for feature engineering.

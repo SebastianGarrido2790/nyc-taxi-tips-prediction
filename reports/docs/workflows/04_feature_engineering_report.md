@@ -60,12 +60,16 @@ We apply this technique to:
 *   **Day of Week** (Weekday vs. Weekend patterns)
 *   **Month of Year** (Seasonality)
 
-### 3.2. Three-Way Temporal Split
+> **Agentic MLOps Context (Training-Serving Parity):** This entire mathematical transformation is completely decoupled from the DAG logic and centralized into a canonical function: `src/utils/feature_utils.py:encode_cyclical`. This strictly guarantees that both the offline DataFrame processing here and the real-time FastAPI inference requests perform identical point-in-time conversions, absolutely eliminating training-serving skew.
+
+### 3.2. Three-Way Temporal Split (Configuration-Driven)
 To realistically evaluate our model, we simulate a production environment where we train on past data and predict the future. We strictly avoid random splitting.
 
-*   **Training Set (Jan - Aug)**: Used to teach the model patterns.
-*   **Validation Set (Sept - Oct)**: Used for hyperparameter tuning and early stopping.
-*   **Testing Set (Nov - Dec)**: Used for the final "hold-out" evaluation locally.
+The boundary months for these splits are dynamically fetched from `config/params.yaml` through Pydantic configuration entities (`FeatureEngineeringConfig`), moving away from brittle hardcoded variables:
+
+*   **Training Set (e.g., Jan - Aug)**: Used to teach the model patterns.
+*   **Validation Set (e.g., Sept - Oct)**: Used for hyperparameter tuning and early stopping.
+*   **Testing Set (e.g., Nov - Dec)**: Used for the final "hold-out" evaluation locally.
 
 **Why this matters**: Random splitting would allow the model to learn from "future" trips in the same month, leaking information about traffic or weather conditions that it shouldn't know.
 
@@ -83,4 +87,3 @@ To enable robust unit testing without needing the full dataset, the `FeatureEngi
 
 *   **Extraction of `_split_data`**: The temporal splitting logic for Train/Val/Test sets was moved from the main `initiate_feature_engineering` method into a separate, pure function `_split_data(df)`.
 *   **Why**: This allows unit tests to inject a small, in-memory DataFrame (Fixture) into `_split_data` and verify that rows are correctly assigned to Train, Validation, or Test sets based on their month, without needing to mock file systems or read Parquet files.
-

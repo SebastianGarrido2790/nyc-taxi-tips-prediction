@@ -10,9 +10,11 @@ Following strict **Agentic MLOps Rules**, the system perfectly executes the **FT
 
 ### The FastAPI Serving Layer (`src/api/predict_api.py`)
 Instead of running prediction computations on the fly in the frontend, the Streamlit app acts as a client to an independent FastAPI microservice.
+*   **API Versioning:** All endpoints are strictly versioned under the `/v1/` prefix (e.g., `/v1/predict`, `/v1/health`) to allow for future structural iterations without breaking existing client consumption modes.
 *   **Model Registry & Lifespan:** The FastAPI server utilizes `lifespan` event handlers to securely load the trained champion model (`model.joblib`) from `artifacts/model_trainer/` into a global memory dictionary precisely once upon startup. This guarantees rapid, sub-millisecond inference times on subsequent API calls without costly repetitive I/O operations.
 *   **Strict Pydantic Contracts:** All communication between the Streamlit UI and the FastAPI backend is validated via strict Pydantic schemas (`PredictRequest`, `PredictResponse` in `src/entity/api_entity.py`), enforcing rigid type safety before any code touches the ML model.
-*   **Custom Exception Handling:** The backend throws standard HTTP `503 Service Unavailable` or `500 Server Errors` when the model registry fails, preventing silent failures and displaying clean exception traces.
+*   **Training-Serving Parity:** Incoming requests explicitely pass through the identical `src/utils/feature_utils.py:encode_cyclical` function used during the offline DVC feature engineering phase, structurally preventing the model from predicting on skewed temporal properties.
+*   **Custom Exception Handling:** The backend raises standard HTTP exceptions combined with comprehensive exception chaining (`raise from e`) when the model registry fails, preventing silent failures and displaying clean stack traces.
 
 ### Artifact Consumption
 To ensure the dashboard loads quickly and interactively, it utilizes Streamlit's caching mechanisms (`@st.cache_data`) to parse pre-computed outputs from the orchestrated DVC pipelines:
@@ -21,15 +23,15 @@ To ensure the dashboard loads quickly and interactively, it utilizes Streamlit's
 *   **Training Parameters:** Loads `config/params.yaml` to extract the metric weights used during automated champion selection.
 
 ## 3. Orchestrator Launchpad (`launch_app.bat`)
-To ensure smooth boots of this decoupled architecture, the system relies on a central windows batch orchestrator (`launch_app.bat`).
+To ensure smooth boots of this decoupled architecture, the system relies on a central windows batch orchestrator (`launch_app.bat`), or standard `make` commands (`make serve` & `streamlit run app.py`).
 Mimicking enterprise Agentic System tooling, this script guarantees reliable startups via sequential checks:
 1.  **Dependency Synchronization:** Runs `uv sync` to ensure local environments match the `pyproject.toml` lockfile exactly.
-2.  **API Background Execution:** Spins up the Uvicorn/FastAPI server (`src.api.predict_api:app --reload`) inside a separate explicitly minimized Windows terminal, maintaining visual cleanliness.
-3.  **Frontend Execution:** Safely sleeps for a 5-second warmup period before starting the Streamlit interface on `localhost:8501`.
+2.  **API Background Execution:** Spins up the Uvicorn/FastAPI server (`src.api.predict_api:app --reload`) directly executing logic independently maintaining visual cleanliness.
+3.  **Frontend Execution:** Safely sleeps for a warmup period before starting the Streamlit interface on `localhost:8501`.
 
 ## 4. User Interface & Core Functionality
 
-The dashboard features a persistent sidebar for navigation and is divided into two primary pages. 
+The dashboard features a persistent sidebar for navigation and is divided into two primary pages.
 
 ### Page 1: Dashboard & Evaluation
 Dedicated to high-level analytics, model transparency, and offline batch prediction reviews.
@@ -39,9 +41,9 @@ Dedicated to high-level analytics, model transparency, and offline batch predict
 *   **Test MSE (Mean Squared Error):** Represents the average of the squares of the errors. It heavily penalizes larger errors, ensuring the model deals effectively with anomalies and outliers, minimizing extreme deviations.
 *   **Champion Selection Weights:** An informative banner displaying the exact metric weights (e.g., MAE, MSE, R2) used by the automated backend pipeline to evaluate, rank, and select this specific champion model from all candidate models.
 
-*   **Model Version Context:** The UI continuously pings the FastAPI `/health` endpoint to confirm server availability and dynamically extract and display the name of the active ML model loaded in the registry (e.g., *serving (Ridge model) predictions*).
+*   **Model Version Context:** The UI continuously pings the FastAPI `/v1/health` endpoint to confirm server availability and dynamically extract and display the name of the active ML model loaded in the registry (e.g., *serving (Ridge model) predictions*).
 *   **Dynamic Sliders & Interactive Sampling:** To maintain high performance without crashing the browser, users are equipped with interactive sliders mapped to dataframe sampling logic:
-    *   **Feature Importance Chart:** Users dial the slider to configure the exact number of top drivers they wish to investigate (e.g., Top 3 to Top 20 features). This visual requests data via a dedicated `/feature-importance` FastAPI endpoint.
+    *   **Feature Importance Chart:** Users dial the slider to configure the exact number of top drivers they wish to investigate (e.g., Top 3 to Top 20 features). This visual requests data via a dedicated `/v1/feature-importance` FastAPI endpoint.
     *   **Distribution Histogram:** Users can adjust the sample size (up to 10,000) of the latest batch inferences rendered in the distribution plot.
     *   **Inferences Ledger:** A slider adjusts the random sample generated from the offline dataset for granular visual review. The ledger seamlessly maps Vendor IDs 1 and 2 to human-readable strings ("Creative Mobile Technologies", "VeriFone Inc.").
 *   **Test Metrics & Weights:** Read-only metric cards visually report Test MAE, MSE, and R², alongside the specific weight distribution that configured the algorithm.
@@ -69,7 +71,7 @@ This page has been upgraded from a static form to an **Agentic Natural Language 
 
 ## 5. Design & Aesthetics
 
-Following strict guidelines for high-quality, professional tooling, the UI employs **custom CSS** to inject a modern, dark-mode aesthetic. 
+Following strict guidelines for high-quality, professional tooling, the UI employs **custom CSS** to inject a modern, dark-mode aesthetic.
 
 *   Uses a tailored `#0E1117` base with `#FAFAFA` text for high contrast.
 *   Incorporates subtle accent colors like gold (`#FFD700`) for headers and buttons, alongside green (`#00FF7F`) for positive metrics, bypassing Streamlit's default generic look to deliver a premium user experience.
