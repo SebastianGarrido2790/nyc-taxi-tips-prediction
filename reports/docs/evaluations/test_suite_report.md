@@ -98,9 +98,9 @@ This suite validates the FastAPI Serving Layer (Inference API).
 
 | Test Case | Description | Goal |
 | :--- | :--- | :--- |
-| `test_health_check_endpoint` | Probes `/health` to verify `200 OK` and active status. | Ensure reliable automated uptime monitoring. |
-| `test_predict_endpoint_validation` | Sends empty arrays and incomplete Pydantic models to `/predict`. | Verify system forcefully truncates malformed requests with `422 Unprocessable Entity` before models calculate on garbage data. |
-| `test_predict_feature_importance_no_model` | Exercises the `/feature-importance` endpoint directly to observe its resilience when lifespans fail/skip. | Ensure system survives unhandled model load crashes. |
+| `test_health_check_endpoint` | Probes `/v1/health` to verify `200 OK` and active status. | Ensure reliable automated uptime monitoring. |
+| `test_predict_endpoint_validation` | Sends empty arrays and incomplete Pydantic models to `/v1/predict`. | Verify system forcefully truncates malformed requests with `422 Unprocessable Entity` before models calculate on garbage data. |
+| `test_predict_feature_importance_no_model` | Exercises the `/v1/feature-importance` endpoint directly to observe its resilience when lifespans fail/skip. | Ensure system survives unhandled model load crashes. |
 | `test_predict_endpoint_success` | Injects valid ride characteristics payload over HTTP into FastAPI handler. | Validate 100% End-to-End serialization from HTTP -> JSON -> Pandas -> ML -> JSON. |
 
 #### 3.2.8 Agent Tools Tests (`tests/unit/test_taxi_analyst_agent.py`)

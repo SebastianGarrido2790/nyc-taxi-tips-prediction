@@ -17,7 +17,6 @@ from src.agents.taxi_analyst_agent import (
 )
 from src.tools.taxi_prediction_tool import PredictionToolError
 
-
 # ---------------------------------------------------------------------------
 # Test 1: Tool schema integrity
 # ---------------------------------------------------------------------------
@@ -53,9 +52,7 @@ def test_get_agent_returns_runnable(mock_chat_genai: MagicMock) -> None:
 
     agent = get_taxi_analyst_agent()
 
-    assert hasattr(agent, "invoke"), (
-        "Compiled LangGraph graph must expose an `.invoke()` method."
-    )
+    assert hasattr(agent, "invoke"), "Compiled LangGraph graph must expose an `.invoke()` method."
 
 
 # ---------------------------------------------------------------------------

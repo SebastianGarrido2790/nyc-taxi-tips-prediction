@@ -6,15 +6,15 @@ adhering to the FTI (Feature, Training, Inference) MLOps pattern by
 decoupling model serving from the frontend application.
 """
 
-import math
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 
 from src.entity.api_entity import PredictRequest, PredictResponse
+from src.utils.feature_utils import encode_cyclical
 from src.utils.logger import get_logger
 from src.utils.model_utils import get_feature_importances
 
@@ -62,6 +62,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# /v1 versioned router — all endpoints live here for backward-compat future
+router = APIRouter(prefix="/v1")
+
 
 def _preprocess_request(req: PredictRequest) -> dict:
     """
@@ -72,13 +75,16 @@ def _preprocess_request(req: PredictRequest) -> dict:
     day = req.day
     month = req.month
 
-    # Cyclical feature engineering (identical to training pipeline)
-    hour_sin = math.sin(2 * math.pi * hour / 24)
-    hour_cos = math.cos(2 * math.pi * hour / 24)
-    day_sin = math.sin(2 * math.pi * day / 31)
-    day_cos = math.cos(2 * math.pi * day / 31)
-    month_sin = math.sin(2 * math.pi * month / 12)
-    month_cos = math.cos(2 * math.pi * month / 12)
+    # Cyclical feature engineering using shared utility (training-serving parity)
+    # Hour (0-23, period=24) - same as feature_engineering.py
+    hour_sin, hour_cos = encode_cyclical(float(hour), 24.0)
+    # Day of Week: the API receives raw day (1-31). We map it to day-of-week
+    # via a 7-day modular approximation consistent with training's weekday encoding.
+    # NOTE: training uses actual weekday from datetime; here we use the user-supplied
+    # day as a proxy (1-31 % 7) to maintain the same 7-period encoding.
+    day_sin, day_cos = encode_cyclical(float((day - 1) % 7), 7.0)
+    # Month (1-12 -> shifted 0-11, period=12) - same as feature_engineering.py
+    month_sin, month_cos = encode_cyclical(float(month - 1), 12.0)
 
     return {
         "VendorID": 1.0,
@@ -108,7 +114,7 @@ def _preprocess_request(req: PredictRequest) -> dict:
     }
 
 
-@app.get("/health", tags=["System"])
+@router.get("/health", tags=["System"])
 def health_check():
     """Simple healthcheck to verify API is active."""
     return {
@@ -118,7 +124,7 @@ def health_check():
     }
 
 
-@app.post("/predict", response_model=list[PredictResponse], tags=["Inference"])
+@router.post("/predict", response_model=list[PredictResponse], tags=["Inference"])
 def predict_tips(requests: list[PredictRequest]):
     """
     Accepts a batch of ride characteristics and returns predicted tips.
@@ -146,19 +152,16 @@ def predict_tips(requests: list[PredictRequest]):
         preds = model.predict(model_input_df)
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Internal prediction execution failed."
-        )
+        raise HTTPException(status_code=500, detail="Internal prediction execution failed.") from e
 
     # 4. Format responses
     responses = [
-        PredictResponse(predicted_tip=float(pred), model_version=version)
-        for pred in preds
+        PredictResponse(predicted_tip=float(pred), model_version=version) for pred in preds
     ]
     return responses
 
 
-@app.get("/feature-importance", tags=["Inference"])
+@router.get("/feature-importance", tags=["Inference"])
 def feature_importance():
     """
     Returns the feature importance relative to the current champion model.
@@ -176,3 +179,7 @@ def feature_importance():
         )
 
     return {"features": feature_names, "importances": importances}
+
+
+# Register the versioned router — all API endpoints are now under /v1
+app.include_router(router)

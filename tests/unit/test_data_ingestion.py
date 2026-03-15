@@ -6,11 +6,13 @@ Scope:
 1. Merge Logic: Validates that taxi zones are correctly joined to trip data (Pickup and Dropoff).
 """
 
-import pytest
+from pathlib import Path
+
 import polars as pl
+import pytest
+
 from src.components.data_ingestion import DataIngestion
 from src.entity.config_entity import DataIngestionConfig
-from pathlib import Path
 
 # Dummy configuration
 config = DataIngestionConfig(

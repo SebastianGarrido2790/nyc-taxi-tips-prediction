@@ -12,14 +12,15 @@ Usage:
         uv run streamlit run app.py (Frontend UI)
 """
 
-import os
-import streamlit as st
-import pandas as pd
 import json
-import requests
-import plotly.express as px
-import yaml
+import os
 from pathlib import Path
+
+import pandas as pd
+import plotly.express as px
+import requests
+import streamlit as st
+import yaml
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
@@ -40,25 +41,25 @@ st.markdown(
         background-color: #0E1117;
         color: #FAFAFA;
     }
-    
+
     /* Header styling */
     h1, h2, h3 {
         color: #FFD700;
         font-family: 'Inter', sans-serif;
     }
-    
+
     /* Metric boxes */
     div[data-testid="stMetricValue"] {
         color: #00FF7F;
         font-size: 2rem;
         font-weight: 700;
     }
-    
+
     /* Sidebar */
     [data-testid="stSidebar"] {
         background-color: #1a1c24;
     }
-    
+
     /* Buttons */
     .stButton>button {
         background-color: #FFD700;
@@ -93,7 +94,7 @@ def load_metrics():
     """
     if not METRICS_PATH.exists():
         return None
-    with open(METRICS_PATH, "r") as f:
+    with open(METRICS_PATH) as f:
         return json.load(f)
 
 
@@ -129,7 +130,7 @@ def load_params():
     """
     if not PARAMS_PATH.exists():
         return None
-    with open(PARAMS_PATH, "r") as f:
+    with open(PARAMS_PATH) as f:
         return yaml.safe_load(f)
 
 
@@ -162,9 +163,7 @@ st.sidebar.image(
     width=150,
 )
 st.sidebar.markdown("---")
-page = st.sidebar.radio(
-    "Navigate", ["📊 Dashboard & Evaluation", "⚡ Interactive Prediction"]
-)
+page = st.sidebar.radio("Navigate", ["📊 Dashboard & Evaluation", "⚡ Interactive Prediction"])
 
 # --- PAGE 1: Dashboard & Evaluation ---
 if page == "📊 Dashboard & Evaluation":
@@ -224,16 +223,12 @@ if page == "📊 Dashboard & Evaluation":
             pass
 
         if importances is not None and feature_names is not None:
-            feat_df = pd.DataFrame(
-                {"Feature": feature_names, "Importance": importances}
-            )
+            feat_df = pd.DataFrame({"Feature": feature_names, "Importance": importances})
 
             # Normalize the importance to sum to 100 (Relative Percentage)
             total_importance = feat_df["Importance"].sum()
             if total_importance > 0:
-                feat_df["Importance"] = (
-                    (feat_df["Importance"] / total_importance) * 100
-                ).round(4)
+                feat_df["Importance"] = ((feat_df["Importance"] / total_importance) * 100).round(4)
 
             num_features = st.slider(
                 "Number of Top Features to Display",
@@ -263,16 +258,12 @@ if page == "📊 Dashboard & Evaluation":
                 "💡 *Importance is normalized as a percentage of the total predictive power across all features.*"
             )
         else:
-            st.info(
-                "Feature importance not supported for the current champion model type."
-            )
+            st.info("Feature importance not supported for the current champion model type.")
 
     with col_pred:
         st.subheader("Latest Batch Predictions")
 
-        sample_size_limit = (
-            min(10000, len(predictions_df)) if len(predictions_df) > 0 else 100
-        )
+        sample_size_limit = min(10000, len(predictions_df)) if len(predictions_df) > 0 else 100
         num_batch_sample = st.slider(
             "Distribution Sample Size",
             min_value=100,
@@ -302,9 +293,7 @@ if page == "📊 Dashboard & Evaluation":
             # Show actual data with enhanced visual context
             st.markdown("##### 🧾 Inferences Ledger")
 
-            ledger_sample_limit = (
-                min(1000, len(predictions_df)) if len(predictions_df) > 0 else 10
-            )
+            ledger_sample_limit = min(1000, len(predictions_df)) if len(predictions_df) > 0 else 10
             num_ledger_sample = st.slider(
                 "Ledger Random Sample",
                 min_value=10,
@@ -321,15 +310,11 @@ if page == "📊 Dashboard & Evaluation":
             if "VendorID" in disp_df.columns:
                 # Map real NYC taxi service providers for better business context
                 vendor_map = {1: "🚗 Creative Mobile", 2: "🚕 VeriFone Inc"}
-                disp_df["Vendor"] = disp_df["VendorID"].map(
-                    lambda x: vendor_map.get(x, str(x))
-                )
+                disp_df["Vendor"] = disp_df["VendorID"].map(lambda x: vendor_map.get(x, str(x)))
 
                 # Reorder columns to put Vendor first
                 cols = ["Vendor", "predicted_tip"] + [
-                    c
-                    for c in disp_df.columns
-                    if c not in ["Vendor", "predicted_tip", "VendorID"]
+                    c for c in disp_df.columns if c not in ["Vendor", "predicted_tip", "VendorID"]
                 ]
                 disp_df = disp_df[cols]
 
@@ -357,6 +342,7 @@ if page == "📊 Dashboard & Evaluation":
 # --- PAGE 2: Agentic Chat UI ---
 elif page == "⚡ Interactive Prediction":
     from dotenv import load_dotenv
+
     from src.agents.taxi_analyst_agent import AgentConfigError, get_taxi_analyst_agent
 
     load_dotenv()  # Ensure .env is loaded (idempotent; safe to call multiple times)
@@ -425,9 +411,7 @@ elif page == "⚡ Interactive Prediction":
                         elif m["role"] == "assistant":
                             langchain_history.append(("ai", m["content"]))
 
-                    result = st.session_state.agent.invoke(
-                        {"messages": langchain_history}
-                    )
+                    result = st.session_state.agent.invoke({"messages": langchain_history})
 
                     # The last message in the graph output is the assistant's reply
                     msg = result["messages"][-1]
@@ -457,9 +441,7 @@ elif page == "⚡ Interactive Prediction":
                             "It looks like your **Google API Key** has hit a rate limit. "
                             "Please check your usage at [Google AI Studio](https://aistudio.google.com/app/apikey)."
                         )
-                    elif "ConnectionError" in err_name or "localhost:8000" in str(
-                        agent_err
-                    ):
+                    elif "ConnectionError" in err_name or "localhost:8000" in str(agent_err):
                         assistant_reply = (
                             f"⚠️ **Brawn Error (FastAPI Offline):**\n\n"
                             f"`{err_name}: {agent_err}`\n\n"
@@ -475,6 +457,4 @@ elif page == "⚡ Interactive Prediction":
 
             st.markdown(assistant_reply)
 
-        st.session_state.messages.append(
-            {"role": "assistant", "content": assistant_reply}
-        )
+        st.session_state.messages.append({"role": "assistant", "content": assistant_reply})

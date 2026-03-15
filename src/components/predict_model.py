@@ -7,8 +7,10 @@ generating predictions using the champion model, and saving the results.
 
 import sys
 from pathlib import Path
+
 import joblib
 import pandas as pd
+
 from src.entity.config_entity import ModelEvaluationConfig
 from src.utils.common import create_directories
 from src.utils.exception import CustomException
@@ -46,9 +48,7 @@ class PredictModel:
 
             # Load dataset representing the new batch of data
             # Here, we use the test set as our fresh data for simulation.
-            logger.info(
-                f"Loading incoming batch data from {self.config.test_data_path}"
-            )
+            logger.info(f"Loading incoming batch data from {self.config.test_data_path}")
             batch_data = pd.read_parquet(self.config.test_data_path)
 
             # Extract features (drop tip_amount as it would not be available in real inference)

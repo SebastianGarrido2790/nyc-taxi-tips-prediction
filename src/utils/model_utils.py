@@ -1,10 +1,13 @@
+from typing import Any
+
 import numpy as np
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def get_feature_importances(model: object) -> tuple[list[str], list[float]]:
+def get_feature_importances(model: Any) -> tuple[list[str], list[float]] | tuple[None, None]:
     """
     Extracts feature importances or coefficients from an arbitrary trained machine learning model.
 
@@ -15,27 +18,23 @@ def get_feature_importances(model: object) -> tuple[list[str], list[float]]:
     utility natively extendable across entirely different ML framework families.
 
     Args:
-        model (object): The trained machine learning model object (e.g., sklearn estimator, XGBoost booster).
+        model (Any): The trained machine learning model object (e.g., sklearn estimator, XGBoost booster).
 
     Returns:
-        tuple[list[str], list[float]]: A tuple containing two lists:
+        tuple[list[str], list[float]] | tuple[None, None]: A tuple containing two lists:
             - feature_names (list[str]): The names of the features.
             - importances (list[float]): The corresponding importance scores or absolute coefficients.
             Returns (None, None) if the model format is unsupported or an error occurs.
     """
     try:
         # Scikit-learn Tree-based models (e.g., RandomForest, GradientBoosting)
-        if hasattr(model, "feature_importances_") and hasattr(
-            model, "feature_names_in_"
-        ):
+        if hasattr(model, "feature_importances_") and hasattr(model, "feature_names_in_"):
             logger.info("Extracting feature importances from tree-based model.")
             return list(model.feature_names_in_), list(model.feature_importances_)
 
         # Scikit-learn Linear models (e.g., Ridge, Lasso, ElasticNet)
         elif hasattr(model, "coef_") and hasattr(model, "feature_names_in_"):
-            logger.info(
-                "Extracting feature importances from linear model coefficients."
-            )
+            logger.info("Extracting feature importances from linear model coefficients.")
             # For linear models, the absolute magnitude of coefficients determines importance
             return list(model.feature_names_in_), list(np.abs(model.coef_))
 

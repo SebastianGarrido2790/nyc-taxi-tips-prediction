@@ -10,19 +10,23 @@ To view the results in your browser run:
 
 import os
 import sys
-import pandas as pd
+
 import joblib
 import mlflow
 import mlflow.sklearn
 import mlflow.xgboost
+import pandas as pd
 from sklearn.dummy import DummyRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNet, Ridge
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from xgboost import XGBRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from xgboost import XGBRegressor
+
 from src.entity.config_entity import ModelTrainerConfig
-from src.utils.common import logger
 from src.utils.exception import CustomException
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__, headline="Component: Model Trainer")
 
 
 class ModelTrainer:
@@ -58,9 +62,7 @@ class ModelTrainer:
                 logger.info(
                     f"Subsampling training data to {self.config.subsample_fraction * 100}%..."
                 )
-                train_data = train_data.sample(
-                    frac=self.config.subsample_fraction, random_state=42
-                )
+                train_data = train_data.sample(frac=self.config.subsample_fraction, random_state=42)
                 logger.info(f"New training set shape: {train_data.shape}")
 
             # Separate features and target
@@ -81,9 +83,7 @@ class ModelTrainer:
                 "Baseline": DummyRegressor(**self.config.all_params["Baseline"]),
                 "ElasticNet": ElasticNet(**self.config.all_params["ElasticNet"]),
                 "Ridge": Ridge(**self.config.all_params["Ridge"]),
-                "RandomForest": RandomForestRegressor(
-                    **self.config.all_params["RandomForest"]
-                ),
+                "RandomForest": RandomForestRegressor(**self.config.all_params["RandomForest"]),
                 "XGBoost": XGBRegressor(**self.config.all_params["XGBoost"]),
                 "GradientBoosting": GradientBoostingRegressor(
                     **self.config.all_params["GradientBoosting"]
@@ -121,9 +121,9 @@ class ModelTrainer:
 
                     # Log model
                     if model_name == "XGBoost":
-                        mlflow.xgboost.log_model(model, artifact_path="model")
+                        mlflow.xgboost.log_model(model, artifact_path="model")  # type: ignore
                     else:
-                        mlflow.sklearn.log_model(model, artifact_path="model")
+                        mlflow.sklearn.log_model(model, artifact_path="model")  # type: ignore
 
                     results.append(
                         {
@@ -137,9 +137,7 @@ class ModelTrainer:
                     )
 
             # --- Multi-Metric Champion Selection ---
-            logger.info(
-                "Computing multi-metric weighted score for champion selection..."
-            )
+            logger.info("Computing multi-metric weighted score for champion selection...")
 
             # Normalize metrics and compute score
             metrics_to_use = self.config.selection_metrics

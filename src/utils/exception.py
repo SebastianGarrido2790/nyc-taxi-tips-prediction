@@ -42,7 +42,7 @@ def error_message_detail(error: Exception | str, error_detail: ModuleType) -> st
     error_message = (
         f"Error occurred in python script: [{file_name}] "
         f"line number: [{line_number}] "
-        f"error message: [{str(error)}]"
+        f"error message: [{error!s}]"
     )
 
     return error_message
@@ -63,9 +63,7 @@ class CustomException(Exception):
             error_detail (ModuleType): The sys module to capture stack trace.
         """
         # Generate the detailed message
-        self.detailed_message = error_message_detail(
-            error=error_message, error_detail=error_detail
-        )
+        self.detailed_message = error_message_detail(error=error_message, error_detail=error_detail)
         # Call the base class constructor with the detailed message
         super().__init__(self.detailed_message)
 

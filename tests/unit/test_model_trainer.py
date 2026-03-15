@@ -7,10 +7,12 @@ These tests verify:
 3. The component correctly handles numeric features and subsampling.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from src.components.model_trainer import ModelTrainer
 from src.entity.config_entity import ModelTrainerConfig
 
@@ -22,7 +24,6 @@ def mock_trainer_config(tmp_path):
         root_dir=tmp_path / "model_trainer",
         train_data_path=tmp_path / "train.parquet",
         val_data_path=tmp_path / "val.parquet",
-        test_data_path=tmp_path / "test.parquet",
         model_name="model.joblib",
         all_params={
             "Baseline": {},
@@ -128,7 +129,7 @@ def test_champion_selection_logic(mock_trainer_config):
     # We'll just test the logic used in the component
     metrics_to_use = {"mae": 0.5, "r2": 0.5}
     bounds = {}
-    for m in metrics_to_use.keys():
+    for m in metrics_to_use:
         vals = [r[m] for r in results]
         bounds[m] = {"min": min(vals), "max": max(vals)}
 

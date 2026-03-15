@@ -7,10 +7,12 @@ These tests verify:
 3. Successfully logs to MLflow and persists metrics.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from src.components.model_evaluation import ModelEvaluation
 from src.entity.config_entity import ModelEvaluationConfig
 

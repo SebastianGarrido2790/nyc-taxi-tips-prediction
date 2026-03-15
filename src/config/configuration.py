@@ -95,9 +95,14 @@ class ConfigurationManager:
         config = self.config["data_transformation"]
         create_directories([config["root_dir"]])
 
+        cleaning = self.params.get("DataCleaning", {})
         return DataTransformationConfig(
             root_dir=config["root_dir"],
             data_path=config["data_path"],
+            min_trip_distance=cleaning.get("min_trip_distance", 0.5),
+            max_trip_distance=cleaning.get("max_trip_distance", 100.0),
+            min_total_amount=cleaning.get("min_total_amount", 3.70),
+            max_total_amount=cleaning.get("max_total_amount", 1000.0),
         )
 
     def get_feature_engineering_config(self) -> FeatureEngineeringConfig:
@@ -110,9 +115,17 @@ class ConfigurationManager:
         config = self.config["feature_engineering"]
         create_directories([config["root_dir"]])
 
+        fe = self.params.get("FeatureEngineering", {})
         return FeatureEngineeringConfig(
             root_dir=config["root_dir"],
             data_path=config["data_path"],
+            target_column=fe.get("target_column", "tip_amount"),
+            train_months_start=fe.get("train_months_start", 1),
+            train_months_end=fe.get("train_months_end", 8),
+            val_months_start=fe.get("val_months_start", 9),
+            val_months_end=fe.get("val_months_end", 10),
+            test_months_start=fe.get("test_months_start", 11),
+            test_months_end=fe.get("test_months_end", 12),
         )
 
     def get_model_trainer_config(self) -> ModelTrainerConfig:
@@ -132,9 +145,7 @@ class ConfigurationManager:
             model_name=config["model_name"],
             all_params=self.params,
             mlflow_uri=get_mlflow_uri(),
-            subsample_fraction=self.params.get("Training", {}).get(
-                "subsample_fraction", 1.0
-            ),
+            subsample_fraction=self.params.get("Training", {}).get("subsample_fraction", 1.0),
             selection_metrics=self.params.get("Training", {}).get(
                 "selection_metrics", {"mae": 1.0}
             ),

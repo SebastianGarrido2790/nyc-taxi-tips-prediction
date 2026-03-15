@@ -7,7 +7,9 @@ it with reference data (taxi zones) to produce an enriched dataset.
 """
 
 import sys
+
 import polars as pl
+
 from src.entity.config_entity import DataIngestionConfig
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger
@@ -60,9 +62,7 @@ class DataIngestion:
 
         return polars_schema
 
-    def _merge_taxi_zones(
-        self, trips_df: pl.DataFrame, zones_df: pl.DataFrame
-    ) -> pl.DataFrame:
+    def _merge_taxi_zones(self, trips_df: pl.DataFrame, zones_df: pl.DataFrame) -> pl.DataFrame:
         """
         Merges taxi zone information into the trip DataFrame.
 
@@ -163,9 +163,7 @@ class DataIngestion:
 
             trips_df.write_parquet(output_file_path)
 
-            logger.info(
-                f"Data Ingestion completed successfully. Shape: {trips_df.shape}"
-            )
+            logger.info(f"Data Ingestion completed successfully. Shape: {trips_df.shape}")
 
         except Exception as e:
             raise CustomException(e, sys) from e

@@ -1,0 +1,53 @@
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\prompts.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\prompts.py:39:66 - warning: Unsupported escape sequence in string literal (reportInvalidStringEscapeSequence)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\prompts.py:39:78 - warning: Unsupported escape sequence in string literal (reportInvalidStringEscapeSequence)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\prompts.py:39:88 - warning: Unsupported escape sequence in string literal (reportInvalidStringEscapeSequence)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:126:32 - error: "xgboost" is not exported from module "mlflow" (reportPrivateImportUsage)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:128:32 - error: "sklearn" is not exported from module "mlflow" (reportPrivateImportUsage)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:17:28 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal['Total distance of the ride in miles.'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:23:27 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal['Total amount charged to the passenger, excluding t…'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:29:28 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal[10], Literal['Number of passengers in the vehicle.'], Literal[1]) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:36:24 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal['Final rate code in effect (e.g., 1 for Standard, 2…'], Literal[1]) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:41:26 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal['Additional fee for airport trips.'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:47:35 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal['Surcharge for entering the Manhattan congestion zo…'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:53:27 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal['Total amount of all tolls paid in trip.'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:59:17 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[0], Literal[23], Literal['Pickup hour (0-23).'], Literal[12]) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:66:16 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[1], Literal[31], Literal['Day of the month when the trip started.'], Literal[15]) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:73:18 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal[1], Literal[12], Literal['Month of the year (1-12).'], Literal[1]) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:87:28 - error: No overloads for "Field" match the provided arguments
+    Argument types: (EllipsisType, Literal['The estimated tip amount in USD.'], float) (reportCallIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\entity\api_entity.py:92:26 - error: No overloads for "Field" match the provided arguments
+    Argument types: (Literal['unknown'], Literal['The version/name of the model used for prediction.'], Literal['xgboost']) (reportCallIssue)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\logger.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\logger.py:19:20 - error: Cannot access attribute "reconfigure" for class "TextIO"
+    Attribute "reconfigure" is unknown (reportAttributeAccessIssue)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:32:31 - error: Cannot access attribute "feature_names_in_" for class "object"
+    Attribute "feature_names_in_" is unknown (reportAttributeAccessIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:32:62 - error: Cannot access attribute "feature_importances_" for class "object"
+    Attribute "feature_importances_" is unknown (reportAttributeAccessIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:40:31 - error: Cannot access attribute "feature_names_in_" for class "object"
+    Attribute "feature_names_in_" is unknown (reportAttributeAccessIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:40:69 - error: Cannot access attribute "coef_" for class "object"
+    Attribute "coef_" is unknown (reportAttributeAccessIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:45:29 - error: Cannot access attribute "get_booster" for class "object"
+    Attribute "get_booster" is unknown (reportAttributeAccessIssue)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:53:20 - error: Type "tuple[None, None]" is not assignable to return type "tuple[list[str], list[float]]"
+    "None" is not assignable to "list[str]"
+    "None" is not assignable to "list[float]" (reportReturnType)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:57:16 - error: Type "tuple[None, None]" is not assignable to return type "tuple[list[str], list[float]]"
+    "None" is not assignable to "list[str]"
+    "None" is not assignable to "list[float]" (reportReturnType)
+22 errors, 3 warnings, 0 informations

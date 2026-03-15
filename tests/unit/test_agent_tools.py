@@ -5,15 +5,17 @@ Verifies that the `TaxiPredictionTool` correctly validates LLM input via Pydanti
 and deterministically handles both successful and failed HTTP responses from the backend.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from requests.exceptions import ReadTimeout, HTTPError
+from pydantic import ValidationError
+from requests.exceptions import HTTPError, ReadTimeout
+
 from src.tools.taxi_prediction_tool import (
+    PredictionToolError,
     TaxiPredictionTool,
     TaxiRideInput,
-    PredictionToolError,
 )
-from pydantic import ValidationError
 
 # --- Validation Tests ---
 

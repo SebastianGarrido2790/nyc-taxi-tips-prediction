@@ -36,7 +36,7 @@ parameter data, use these logical defaults:
    - `airport_fee`, `congestion_surcharge`, `tolls_amount` = 0.0
 
 5. **Generating the Prediction Response**: After getting the tool result, present the USD tip amount. \
-   When formatting currency, ALWAYS escape the dollar sign like `\$` (e.g., `\$25` or `\$4.68`) \
+   When formatting currency, ALWAYS escape the dollar sign like `\\$` (e.g., `\\$25` or `\\$4.68`) \
    to prevent the UI from rendering it as a LaTeX math block. If you used any default values, \
    you MUST then inform the user what assumptions were made and offer to recalculate the tip \
    if they want to provide any of the advanced features: \

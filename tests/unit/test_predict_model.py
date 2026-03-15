@@ -7,10 +7,12 @@ These tests verify:
 3. Shape consistency of output predictions.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pandas as pd
+import pytest
+
 from src.components.predict_model import PredictModel
 from src.entity.config_entity import ModelEvaluationConfig
 

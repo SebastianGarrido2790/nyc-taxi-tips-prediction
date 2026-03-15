@@ -8,15 +8,15 @@ Usage:
 """
 
 import logging
+import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
-import sys
 
+# Force UTF-8 encoding for Windows console
 if sys.stdout is not None and getattr(sys.stdout, "encoding", "").lower() != "utf-8":
     try:
-        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore
     except AttributeError:
         pass
 
@@ -25,9 +25,7 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOGS_DIR / "running_logs.log"
 
 
-def get_logger(
-    name: Optional[str] = None, headline: Optional[str] = None
-) -> logging.Logger:
+def get_logger(name: str | None = None, headline: str | None = None) -> logging.Logger:
     """
     Returns a configured logger with consistent formatting.
     Adds an optional headline section to separate logs per script.
@@ -38,8 +36,8 @@ def get_logger(
         - Works safely across multi-module projects
 
     Args:
-        name (Optional[str]): Optional logger name, typically __name__.
-        headline (Optional[str]): Optional headline for visual separation
+        name (str | None): Optional logger name, typically __name__.
+        headline (str | None): Optional headline for visual separation
             (e.g., script name).
 
     Returns:

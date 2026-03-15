@@ -64,6 +64,7 @@ Active `ruff` rule sets (from `pyproject.toml`):
 | `F` | Pyflakes | Unused imports, undefined names |
 | `I` | isort | Import ordering |
 | `UP` | pyupgrade | Modern Python idioms |
+| `RUF` | Ruff-specific | Specialized Ruff linting rules |
 
 `E501` (line length) is exempt — handled by the formatter at 88 characters.
 
@@ -235,19 +236,22 @@ The tools interfacing with LLMs (such as `TaxiPredictionTool`) **must elegantly 
 | **Integration** | `pytest` | Mock-enabled endpoint access mapping to FTI stages |
 | **API/Routing** | `pytest` | `TestClient` validations encompassing `/predict` & `/health` |
 
-### 7.2 CI Enforcement
+### 7.2 CI Enforcement & Pre-commit Hooks
 
+The project utilizes `.pre-commit-config.yaml` locally and workflows structurally ensuring compliance.
 The GitHub Actions CI strictly enforces the following gates. Pushing to master forces the build process against:
 
 ```
-Lint & Format (Ruff) ──► Unit & Logic Tests ──► Docker Build Smoke Test
+Lint & Format (Ruff) ───► Strict Type Checking (Pyright) ───► Unit & Logic Tests
 ```
 
 A PR **cannot be deployed** manually overriding failed Action runs.
 
+Local testing should utilize the standardized `Makefile` commands (`make format`, `make lint`, `make typecheck`, `make test-ci`) to emulate CI.
+
 ### 7.3 Unit Test Requirements
 
-Whenever testing explicit Data transformations or Inference endpoints, always emphasize **mocking external I/O integrations** (Polars mock sets, Requests timeouts, Joblib model loaders) via standard `unittest.mock`. 
+Whenever testing explicit Data transformations or Inference endpoints, always emphasize **mocking external I/O integrations** (Polars mock sets, Requests timeouts, Joblib model loaders) via standard `unittest.mock`.
 Focus on Testing internal Logic execution, not the network robustness of third parties sequentially.
 
 ---

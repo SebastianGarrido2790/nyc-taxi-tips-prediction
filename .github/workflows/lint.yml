@@ -34,3 +34,6 @@ jobs:
 
       - name: Lint code (Ruff)
         run: uv run ruff check .
+
+      - name: Strict Type Checking (Pyright)
+        run: uv run pyright src/

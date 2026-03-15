@@ -8,16 +8,17 @@ Scope:
 3. Column Dropping (Removing irrelevant features).
 """
 
+from pathlib import Path
+
 import polars as pl
+
 from src.components.data_transformation import DataTransformation
 from src.entity.config_entity import DataTransformationConfig
-from pathlib import Path
 
 # Dummy configuration
 config = DataTransformationConfig(
     root_dir=Path("./temp"),
     data_path=Path("./dummy_ingested.parquet"),
-    cleaned_data_path=Path("./dummy_cleaned.parquet"),
 )
 
 
@@ -43,18 +44,12 @@ def test_initial_imputation(sample_trip_data):
     assert result["congestion_surcharge"].null_count() == 0, (
         "Null congestion_surcharge should be filled."
     )
-    assert result["congestion_surcharge"].sum() == 2.5, (
-        "Congestion surcharge sum mismatch."
-    )
+    assert result["congestion_surcharge"].sum() == 2.5, "Congestion surcharge sum mismatch."
 
     # Check passenger_count
     # Row 0 (1) + Row 4 (0 -> 1) = 2. Mean = 1.0
-    assert result["passenger_count"].null_count() == 0, (
-        "Null passenger_count should be filled."
-    )
-    assert result["passenger_count"].mean() == 1.0, (
-        "Passenger count imputation mismatch."
-    )
+    assert result["passenger_count"].null_count() == 0, "Null passenger_count should be filled."
+    assert result["passenger_count"].mean() == 1.0, "Passenger count imputation mismatch."
 
     # Check RatecodeID
     assert result["RatecodeID"].null_count() == 0, "Null RatecodeID should be filled."
@@ -68,9 +63,7 @@ def test_column_dropping(sample_trip_data):
     dt = DataTransformation(config)
     result = dt._clean_data(sample_trip_data)
 
-    assert "store_and_fwd_flag" not in result.columns, (
-        "store_and_fwd_flag should be dropped."
-    )
+    assert "store_and_fwd_flag" not in result.columns, "store_and_fwd_flag should be dropped."
 
 
 def test_filtering_refunds(sample_trip_data):
@@ -92,9 +85,7 @@ def test_filtering_outliers_distance(sample_trip_data):
     # trip_distance must be > 0.5 and < 100
     # In sample_trip_data: 0.0 (too small), 150.0 (too big)
     assert (
-        result.filter(
-            (pl.col("trip_distance") <= 0.5) | (pl.col("trip_distance") >= 100)
-        ).shape[0]
+        result.filter((pl.col("trip_distance") <= 0.5) | (pl.col("trip_distance") >= 100)).shape[0]
         == 0
     ), "Invalid distances should be filtered."
 

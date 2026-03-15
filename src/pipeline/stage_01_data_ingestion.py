@@ -6,6 +6,7 @@ management and calls the technical components to perform the work.
 """
 
 import sys
+
 from src.components.data_ingestion import DataIngestion
 from src.config.configuration import ConfigurationManager
 from src.utils.exception import CustomException

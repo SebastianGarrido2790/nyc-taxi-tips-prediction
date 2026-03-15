@@ -4,11 +4,13 @@ Fully environment-aware, using ENV loaded from src.utils.paths.
 """
 
 import os
-import yaml
 from pathlib import Path
+
+import yaml
 from dotenv import load_dotenv
-from src.utils.logger import get_logger
+
 from src.constants import PARAMS_FILE_PATH
+from src.utils.logger import get_logger
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,13 +59,11 @@ def get_mlflow_uri(params_path: Path = PARAMS_FILE_PATH) -> str:
     if params_file := Path(params_path):
         if params_file.exists():
             try:
-                with open(params_file, "r") as f:
+                with open(params_file) as f:
                     params = yaml.safe_load(f)
                     if params and "mlflow" in params and "uri" in params["mlflow"]:
                         uri = params["mlflow"]["uri"]
-                        logger.info(
-                            f"[ENV={ENV}] Using MLflow URI from {params_path}: {uri}"
-                        )
+                        logger.info(f"[ENV={ENV}] Using MLflow URI from {params_path}: {uri}")
                         return uri
             except Exception as e:
                 logger.warning(f"Error reading {params_path}: {e}")

@@ -5,8 +5,9 @@ This module provides a deterministic, strongly-typed tool interface designed
 specifically for Agentic (LLM) Systems to interact with the FTI Model Serving layer.
 """
 
-from typing import List, Dict, Any, Optional
 import os
+from typing import Any
+
 import requests
 from pydantic import BaseModel, Field
 
@@ -74,7 +75,7 @@ class TaxiPredictionTool:
     so the Agent (Brain) focuses strictly on reasoning and orchestrating workflow.
     """
 
-    def __init__(self, api_url: Optional[str] = None):
+    def __init__(self, api_url: str | None = None):
         """
         Initializes the Tool with the target ML Serving endpoint.
 
@@ -85,7 +86,7 @@ class TaxiPredictionTool:
         self.predict_endpoint = f"{self.api_url}/predict"
         self.health_endpoint = f"{self.api_url}/health"
 
-    def predict_tips(self, rides: List[TaxiRideInput]) -> List[Dict[str, Any]]:
+    def predict_tips(self, rides: list[TaxiRideInput]) -> list[dict[str, Any]]:
         """
         Calculates the expected tip amount for a batch of NYC Taxi rides.
 
@@ -99,9 +100,7 @@ class TaxiPredictionTool:
             PredictionToolError: If the backend is unreachable or returns validation/server errors.
         """
         if not rides:
-            raise PredictionToolError(
-                "No rides provided for prediction. The list is empty."
-            )
+            raise PredictionToolError("No rides provided for prediction. The list is empty.")
 
         # Serialize Pydantic objects to JSON-friendly dictionaries
         payload = [ride.model_dump() for ride in rides]
@@ -112,14 +111,8 @@ class TaxiPredictionTool:
 
             # Fast-Fail Logic: Ensure API contract is met
             data = response.json()
-            if (
-                not isinstance(data, list)
-                or len(data) == 0
-                or "predicted_tip" not in data[0]
-            ):
-                raise PredictionToolError(
-                    f"Unexpected response format from Model API: {data}"
-                )
+            if not isinstance(data, list) or len(data) == 0 or "predicted_tip" not in data[0]:
+                raise PredictionToolError(f"Unexpected response format from Model API: {data}")
 
             return data
 
@@ -137,7 +130,7 @@ class TaxiPredictionTool:
                 f"Network error communicating with the Model Serving API: {e}"
             )
 
-    def check_health(self) -> Dict[str, Any]:
+    def check_health(self) -> dict[str, Any]:
         """
         Verifies if the Model Serving Pipeline is online and ready for inferences.
         """
@@ -146,6 +139,4 @@ class TaxiPredictionTool:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise PredictionToolError(
-                f"Model capability is currently offline or unreachable: {e}"
-            )
+            raise PredictionToolError(f"Model capability is currently offline or unreachable: {e}")

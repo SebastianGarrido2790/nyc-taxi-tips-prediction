@@ -74,23 +74,23 @@ flowchart TD
 *   **Note**: This stage is a "Gatekeeper". If it fails, the pipeline halts.
 
 ### 3.3 Data Transformation (`stage_03_data_transformation`)
-*   **Input**: Enriched Data (`.parquet`).
+*   **Input**: Enriched Data (`.parquet`), `config/params.yaml`.
 *   **Logic**:
     *   **Imputation**: Fills nulls in `airport_fee`, `congestion_surcharge`, `passenger_count`.
-    *   **Filtering**: Prunes negative fares, invalid distances, and outliers.
+    *   **Filtering**: Prunes negative fares, invalid distances, and outliers based on thresholds defined dynamically in `params.yaml` (DataCleaning section).
 *   **Output**: `artifacts/data_transformation/cleaned_trip_data.parquet`.
 *   **Dependency**: `src/components/data_transformation.py`.
 
 ### 3.4 Feature Engineering (`stage_04_feature_engineering`)
-*   **Input**: Cleaned Data (`.parquet`).
+*   **Input**: Cleaned Data (`.parquet`), `config/params.yaml`.
 *   **Logic**:
-    *   **Cyclical Encoding**: Transforms Hour/Day/Month into Sin/Cos pairs.
-    *   **Temporal Splitting**: Splits data by month (Jan-Aug/Sept-Oct/Nov-Dec).
+    *   **Cyclical Encoding**: Transforms Hour/Day/Month into Sin/Cos pairs using the canonical `src/utils/feature_utils.py:encode_cyclical` function to prevent training-serving skew.
+    *   **Temporal Splitting**: Splits data chronologically into Train/Val/Test sets based on boundaries defined in `params.yaml` (FeatureEngineering section).
 *   **Outputs**:
     *   `artifacts/feature_engineering/train.parquet`
     *   `artifacts/feature_engineering/val.parquet`
     *   `artifacts/feature_engineering/test.parquet`
-*   **Dependency**: `src/components/feature_engineering.py`.
+*   **Dependency**: `src/components/feature_engineering.py`, `src/utils/feature_utils.py`.
 
 ### 3.5 Model Trainer (`stage_05_model_trainer`)
 *   **Input**: Training and Validation Set (`.parquet`).

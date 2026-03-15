@@ -7,11 +7,12 @@ and running an inference simulation.
 """
 
 import sys
-from src.config.configuration import ConfigurationManager
+
 from src.components.model_evaluation import ModelEvaluation
 from src.components.predict_model import PredictModel
-from src.utils.logger import get_logger, log_spacer
+from src.config.configuration import ConfigurationManager
 from src.utils.exception import CustomException
+from src.utils.logger import get_logger, log_spacer
 
 logger = get_logger(__name__, headline="Stage: Model Evaluation")
 STAGE_NAME = "Model Evaluation"

@@ -34,4 +34,4 @@ jobs:
         run: uv sync --all-extras --frozen
 
       - name: Execute Deterministic Tests (Pytest)
-        run: uv run pytest tests/
+        run: uv run pytest --cov=src --cov-fail-under=65 --cov-report=term-missing tests/

@@ -6,8 +6,9 @@ compares them using MLflow, and saves the best model.
 """
 
 import sys
-from src.config.configuration import ConfigurationManager
+
 from src.components.model_trainer import ModelTrainer
+from src.config.configuration import ConfigurationManager
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger
 

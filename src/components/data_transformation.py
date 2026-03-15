@@ -7,7 +7,9 @@ the data is devoid of outliers and missing values before feature engineering.
 """
 
 import sys
+
 import polars as pl
+
 from src.entity.config_entity import DataTransformationConfig
 from src.utils.exception import CustomException
 from src.utils.logger import get_logger
@@ -63,9 +65,7 @@ class DataTransformation:
         df = df.with_columns(
             pl.col("airport_fee").fill_null(0.0),
             pl.col("congestion_surcharge").fill_null(0.0),
-            pl.col("passenger_count")
-            .fill_null(1)
-            .replace(0, 1),  # Replace 0 with 1 as well
+            pl.col("passenger_count").fill_null(1).replace(0, 1),  # Replace 0 with 1 as well
             pl.col("RatecodeID").fill_null(99),
         )
         logger.info("Applied basic imputation rules.")
@@ -89,16 +89,14 @@ class DataTransformation:
 
         # Construct filter mask
         # 1. No negative values in ANY financial column
-        non_negative_mask = pl.all_horizontal(
-            [pl.col(c) >= 0 for c in existing_financial_cols]
-        )
+        non_negative_mask = pl.all_horizontal([pl.col(c) >= 0 for c in existing_financial_cols])
 
         filter_mask = (
             non_negative_mask
-            & (pl.col("trip_distance") > 0.5)
-            & (pl.col("trip_distance") < 100)
-            & (pl.col("total_amount") >= 3.70)
-            & (pl.col("total_amount") <= 1000)
+            & (pl.col("trip_distance") > self.config.min_trip_distance)
+            & (pl.col("trip_distance") < self.config.max_trip_distance)
+            & (pl.col("total_amount") >= self.config.min_total_amount)
+            & (pl.col("total_amount") <= self.config.max_total_amount)
         )
 
         df_cleaned = df.filter(filter_mask)
@@ -128,9 +126,7 @@ class DataTransformation:
         try:
             logger.info("Loading data for transformation...")
             if not self.config.data_path.exists():
-                raise FileNotFoundError(
-                    f"Data file not found at: {self.config.data_path}"
-                )
+                raise FileNotFoundError(f"Data file not found at: {self.config.data_path}")
 
             df = pl.read_parquet(self.config.data_path)
             logger.info(f"Loaded raw data: {df.shape}")

@@ -18,64 +18,64 @@ class PredictRequest(BaseModel):
         ...,
         gt=0,
         description="Total distance of the ride in miles.",
-        example=2.5,
+        examples=[2.5],
     )
     total_amount: float = Field(
         ...,
         gt=0,
         description="Total amount charged to the passenger, excluding tip.",
-        example=15.0,
+        examples=[15.0],
     )
     passenger_count: int = Field(
         ...,
         gt=0,
         le=10,
         description="Number of passengers in the vehicle.",
-        example=1,
+        examples=[1],
     )
     ratecode_id: int = Field(
         ...,
         description="Final rate code in effect (e.g., 1 for Standard, 2 for JFK).",
-        example=1,
+        examples=[1],
     )
     airport_fee: float = Field(
         ...,
         ge=0,
         description="Additional fee for airport trips.",
-        example=0.0,
+        examples=[0.0],
     )
     congestion_surcharge: float = Field(
         ...,
         ge=0,
         description="Surcharge for entering the Manhattan congestion zone.",
-        example=2.5,
+        examples=[2.5],
     )
     tolls_amount: float = Field(
         ...,
         ge=0,
         description="Total amount of all tolls paid in trip.",
-        example=0.0,
+        examples=[0.0],
     )
     hour: int = Field(
         ...,
         ge=0,
         le=23,
         description="Pickup hour (0-23).",
-        example=12,
+        examples=[12],
     )
     day: int = Field(
         ...,
         ge=1,
         le=31,
         description="Day of the month when the trip started.",
-        example=15,
+        examples=[15],
     )
     month: int = Field(
         ...,
         ge=1,
         le=12,
         description="Month of the year (1-12).",
-        example=1,
+        examples=[1],
     )
 
 
@@ -87,10 +87,10 @@ class PredictResponse(BaseModel):
     predicted_tip: float = Field(
         ...,
         description="The estimated tip amount in USD.",
-        example=2.50,
+        examples=[2.50],
     )
     model_version: str = Field(
         default="unknown",
         description="The version/name of the model used for prediction.",
-        example="xgboost",
+        examples=["xgboost"],
     )

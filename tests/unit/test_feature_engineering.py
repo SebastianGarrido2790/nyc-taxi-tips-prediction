@@ -8,10 +8,12 @@ Scope:
 3. Schema Consistency.
 """
 
+from pathlib import Path
+
 import pytest
+
 from src.components.feature_engineering import FeatureEngineering
 from src.entity.config_entity import FeatureEngineeringConfig
-from pathlib import Path
 
 # Dummy configuration
 config = FeatureEngineeringConfig(
@@ -42,12 +44,8 @@ def test_feature_engineering_transforms(cleaned_trip_data):
     # First row is Jan 1st 00:00:00 (Sunday)
     # Hour 0 -> sin(0) = 0, cos(0) = 1
     row = result.row(0, named=True)
-    assert row["pickup_hour_sin"] == pytest.approx(0.0, abs=1e-5), (
-        "Hour 0 sin should be 0."
-    )
-    assert row["pickup_hour_cos"] == pytest.approx(1.0, abs=1e-5), (
-        "Hour 0 cos should be 1."
-    )
+    assert row["pickup_hour_sin"] == pytest.approx(0.0, abs=1e-5), "Hour 0 sin should be 0."
+    assert row["pickup_hour_cos"] == pytest.approx(1.0, abs=1e-5), "Hour 0 cos should be 1."
 
 
 def test_temporal_splitting(cleaned_trip_data):
@@ -81,17 +79,13 @@ def test_temporal_splitting(cleaned_trip_data):
     test_months = test["pickup_month"].unique().to_list()
 
     # Train shouldn't have months > 8
-    assert all(m <= 8 for m in train_months), (
-        f"Training set contains future months: {train_months}"
-    )
+    assert all(m <= 8 for m in train_months), f"Training set contains future months: {train_months}"
     # Val shouldn't have months < 9 or > 10
     assert all(9 <= m <= 10 for m in val_months), (
         f"Validation set contains invalid months: {val_months}"
     )
     # Test shouldn't have months < 11
-    assert all(m >= 11 for m in test_months), (
-        f"Test set contains past months: {test_months}"
-    )
+    assert all(m >= 11 for m in test_months), f"Test set contains past months: {test_months}"
 
 
 def test_feature_columns_consistency(cleaned_trip_data):

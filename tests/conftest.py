@@ -7,11 +7,12 @@ It includes:
 2. `cleaned_trip_data`: Cleaned data spanning multiple months for testing feature engineering.
 """
 
-import pytest
-import polars as pl
-from datetime import datetime
 import sys
+from datetime import datetime
 from pathlib import Path
+
+import polars as pl
+import pytest
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
