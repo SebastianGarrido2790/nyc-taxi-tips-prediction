@@ -8,6 +8,7 @@ Key innovations in this stage include:
 2.  **Weighted Multi-Metric Selection**: Selecting the best model using a configurable combination of MAE, MSE, and R².
 3.  **Fast Iteration Mode**: Built-in subsampling for rapid local testing without processing millions of rows.
 4.  **Anti-Leakage Strategy**: Using the **Validation Set** for selection, preserving the Test Set for unbiased evaluation.
+5.  **Configurable Brain**: Eliminated all hardcoded target column strings. The model logic now dynamically adapts to the schema defined in `config/schema.yaml`.
 
 ## 2. Architecture
 
@@ -29,11 +30,16 @@ flowchart TD
         D -- No --> F[Full Dataset]
     end
 
+    subgraph Config [Configuration Hydration]
+        F --> H1[Read schema.yaml]
+        H1 --> H2[Extract Target: tip_amount]
+    end
+
     subgraph Training_Loop [MLflow Experiment Loop]
-        E & F --> G[Baseline]
-        E & F --> H[Ridge / ElasticNet]
-        E & F --> I[RandomForest]
-        E & F --> J[XGBoost / GradientBoost]
+        H2 --> G[Baseline]
+        H2 --> H[Ridge / ElasticNet]
+        H2 --> I[RandomForest]
+        H2 --> J[XGBoost / GradientBoost]
     end
 
     subgraph Evaluation [Metric Calculation]
@@ -94,6 +100,12 @@ model_trainer:
   train_data_path: artifacts/feature_engineering/train.parquet
   val_data_path: artifacts/feature_engineering/val.parquet
   model_name: model.joblib
+```
+
+### `schema.yaml` (The Source of Truth)
+```yaml
+TARGET_COLUMN:
+  name: tip_amount
 ```
 
 ## 5. Selection Integrity

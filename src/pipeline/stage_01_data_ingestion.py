@@ -9,7 +9,7 @@ import sys
 
 from src.components.data_ingestion import DataIngestion
 from src.config.configuration import ConfigurationManager
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Data Ingestion"
@@ -37,7 +37,7 @@ class DataIngestionTrainingPipeline:
             data_ingestion.initiate_data_ingestion()
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e
 
 
 if __name__ == "__main__":

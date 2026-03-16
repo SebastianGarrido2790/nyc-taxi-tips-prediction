@@ -23,7 +23,7 @@ To avoid discarding 3.4% of the dataset, we will implement the following imputat
 *   **Categorical Codes** (`RatecodeID`): Map missing codes to `99.0` (which corresponds to "Unknown" in the data dictionary).
 
 ### `store_and_fwd_flag` Irrelevance:
-Analysis showed that `96.00%` of this column is 'N', while only `0.58%` is 'Y'. Grouping by this flag showed negligible variance in average tips (`$3.55` vs `$3.05`). 
+Analysis showed that `96.00%` of this column is 'N', while only `0.58%` is 'Y'. Grouping by this flag showed negligible variance in average tips (`$3.55` vs `$3.05`).
 *   **Action**: Drop `store_and_fwd_flag` during ingestion as it adds no predictive value.
 
 ---
@@ -61,10 +61,10 @@ After applying the baseline cleaning rules defined above, a highly clean subset 
 
 ### Correlation & Feature Importance:
 *   `trip_distance` shows a looser correlation with the tip compared to financial columns, as distance is already "baked into" the various fare charges via toll and time variations.
-*   A proxy `XGBRegressor` was used to determine raw feature impacts on `tip_amount`. 
+*   A proxy `XGBRegressor` was used to determine raw feature impacts on `tip_amount`.
 
 ### 🚨 CRITICAL MLOps DISCOVERY: Data Leakage Warning 🚨
-The feature importance proxy demonstrated that using `total_amount` as a predictive feature constitutes **severe data leakage**. Because `total_amount` mathematically *includes* the `tip_amount` in most standard scenarios, passing it to the model gives away the answer. 
+The feature importance proxy demonstrated that using `total_amount` as a predictive feature constitutes **severe data leakage**. Because `total_amount` mathematically *includes* the `tip_amount` in most standard scenarios, passing it to the model gives away the answer.
 
 **Architectural Prevention (Data Layer Action)**:
 To preserve the integrity of the FTI pattern, the Feature Pipeline must enforce one of the following proxy billing features instead:

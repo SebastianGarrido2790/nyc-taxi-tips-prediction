@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # FTI ARCHITECTURE & AGENTIC ORCHESTRATION LAYER
 # -----------------------------------------------------------------------------
-# This repository follows a strict decoupled "Brain vs. Brawn" architecture 
+# This repository follows a strict decoupled "Brain vs. Brawn" architecture
 # using LangGraph and Gemini-2.5-flash for the natural language UI.
 #
 # DO NOT use this root Dockerfile directly.

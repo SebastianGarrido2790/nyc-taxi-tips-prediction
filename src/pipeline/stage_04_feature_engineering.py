@@ -9,7 +9,7 @@ import sys
 
 from src.components.feature_engineering import FeatureEngineering
 from src.config.configuration import ConfigurationManager
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Feature Engineering"
@@ -37,7 +37,7 @@ class FeatureEngineeringTrainingPipeline:
             feature_engineering.initiate_feature_engineering()
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e
 
 
 if __name__ == "__main__":

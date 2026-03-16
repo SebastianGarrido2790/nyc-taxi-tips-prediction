@@ -16,7 +16,7 @@ from src.pipeline.stage_03_data_transformation import DataTransformationTraining
 from src.pipeline.stage_04_feature_engineering import FeatureEngineeringTrainingPipeline
 from src.pipeline.stage_05_model_trainer import ModelTrainerPipeline
 from src.pipeline.stage_06_model_evaluation import ModelEvaluationPipeline
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger, log_spacer
 
 logger = get_logger(__name__, headline="main.py")
@@ -64,4 +64,4 @@ try:
     logger.info(f"Stage: {STAGE_NAME} completed")
 
 except Exception as e:
-    raise CustomException(e, sys) from e
+    raise CustomExceptionError(e, sys) from e

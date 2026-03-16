@@ -8,7 +8,7 @@ It defines a Directed Acyclic Graph (DAG) ensuring that:
 3.  **Traceability**: The lineage of every model is fully auditable.
 
 ## 2. Pipeline DAG
-The pipeline consists of 5 primary stages (currently implemented):
+The pipeline consists of 6 primary stages:
 
 ```mermaid
 flowchart TD
@@ -68,7 +68,7 @@ flowchart TD
 
 ### 3.2 Data Validation (`stage_02_data_validation`)
 *   **Input**: Enriched Data (`.parquet`).
-*   **Logic**: Validates schema against `config/schema.yaml`. Checks for critical column existence.
+*   **Logic**: Validates schema against `config/schema.yaml`. Checks for critical column existence and verifies the **Target Column** (`tip_amount`) is present for offline stages.
 *   **Output**: `artifacts/data_validation/status.txt`.
 *   **Dependency**: `src/components/data_validation.py`.
 *   **Note**: This stage is a "Gatekeeper". If it fails, the pipeline halts.
@@ -93,8 +93,9 @@ flowchart TD
 *   **Dependency**: `src/components/feature_engineering.py`, `src/utils/feature_utils.py`.
 
 ### 3.5 Model Trainer (`stage_05_model_trainer`)
-*   **Input**: Training and Validation Set (`.parquet`).
+*   **Input**: Training and Validation Set (`.parquet`), `config/schema.yaml`, `config/params.yaml`.
 *   **Logic**:
+    *   **Configurable Target**: Reads the target column name dynamically from `schema.yaml`, eliminating hardcoded logic.
     *   **Subsampling**: Fast local training toggle.
     *   **Model Benchmarking**: Trains multiple candidates (XGBoost, RandomForest, Ridge, etc.).
     *   **Selection**: Multi-metric weighted scoring on Validation Set.
@@ -104,10 +105,10 @@ flowchart TD
 *   **Dependency**: `src/components/model_trainer.py`.
 
 ### 3.6 Model Evaluation (`stage_06_model_evaluation`)
-*   **Input**: Test Set (`.parquet`) and Champion Model (`.joblib`).
+*   **Input**: Test Set (`.parquet`), Champion Model (`.joblib`), `config/config.yaml`, `config/schema.yaml`.
 *   **Logic**:
-    *   **Evaluation**: Calculates MAE, MSE, and R² against the hold-out test set to get final real-world performance metrics.
-    *   **Inference**: Generates predictions on the test set, simulating a batch incoming data load.
+    *   **Evaluation**: Calculates MAE, MSE, and R² against the hold-out test set (dynamically targeting the column from `schema.yaml`).
+    *   **Inference Simulation**: Uses a dedicated `PredictModelConfig` to ingest incoming trip records and persist predictions.
 *   **Outputs**:
     *   `artifacts/predictions/inference_results.csv`
     *   `artifacts/model_evaluation/metrics.json`

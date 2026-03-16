@@ -4,7 +4,7 @@
 The goal of Phase 6.1 was to containerize the NYC Taxi Tips Prediction application as part of the deployment process. This involved taking the decoupled architecture established in Phase 5 (FastAPI backend and Streamlit frontend) and encapsulating it within isolated, reproducible Docker containers. Finally, these containers were orchestrated to run seamlessly together using Docker Compose.
 
 ## 2. Agentic Docker Architecture (Brain vs. Brawn)
- 
+
 The architecture adheres strictly to the **Agentic System Architect** principles, decoupling the system into two distinct microservices that communicate via a bridge network:
 *   **The Brain (Frontend)**: Handles probabilistic reasoning and the LangGraph workflow.
 *   **The Brawn (Backend)**: Handles deterministic ML inference and FTI logic.
@@ -18,7 +18,7 @@ Both Dockerfiles utilize the `ghcr.io/astral-sh/uv:python3.11-bookworm-slim` bas
 *   **Purpose:** Hosts the FastAPI inference server.
 *   **Payload:** Copies only the necessary code (`src/`, `config/`), lockfiles, and the trained model/metadata (`artifacts/`).
 *   **Execution:** Runs `uvicorn` on port `8000`. It acts as the deterministic execution layer for the Agent.
- 
+
 ### 2.3 The Brain: Frontend Container (`docker/frontend.Dockerfile`)
 *   **Purpose:** Hosts the Streamlit interactive dashboard and the LangGraph Agentic Analyst.
 *   **Payload:** Copies the UI code (`app.py`), agents (`src/agents/`), tools, and reports.

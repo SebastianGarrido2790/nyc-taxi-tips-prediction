@@ -15,6 +15,7 @@ from src.entity.config_entity import (
     FeatureEngineeringConfig,
     ModelEvaluationConfig,
     ModelTrainerConfig,
+    PredictModelConfig,
 )
 from src.utils.common import create_directories, read_yaml
 from src.utils.mlflow_config import get_mlflow_uri
@@ -119,7 +120,7 @@ class ConfigurationManager:
         return FeatureEngineeringConfig(
             root_dir=config["root_dir"],
             data_path=config["data_path"],
-            target_column=fe.get("target_column", "tip_amount"),
+            target_column=self.schema["TARGET_COLUMN"]["name"],
             train_months_start=fe.get("train_months_start", 1),
             train_months_end=fe.get("train_months_end", 8),
             val_months_start=fe.get("val_months_start", 9),
@@ -149,6 +150,7 @@ class ConfigurationManager:
             selection_metrics=self.params.get("Training", {}).get(
                 "selection_metrics", {"mae": 1.0}
             ),
+            target_column=self.schema["TARGET_COLUMN"]["name"],
         )
 
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
@@ -168,4 +170,33 @@ class ConfigurationManager:
             all_params=self.params,
             metric_file_name=config["metric_file_name"],
             mlflow_uri=get_mlflow_uri(),
+            target_column=self.schema["TARGET_COLUMN"]["name"],
         )
+
+    def get_predict_model_config(self) -> PredictModelConfig:
+        """
+        Retrieves the configuration for the Predict Model (Batch Inference) stage.
+
+        Returns:
+            PredictModelConfig: Validated inference configuration object.
+        """
+        config = self.config["predict_model"]
+        eval_config = self.config["model_evaluation"]
+        create_directories([config["root_dir"]])
+
+        return PredictModelConfig(
+            root_dir=config["root_dir"],
+            test_data_path=eval_config["test_data_path"],
+            model_path=eval_config["model_path"],
+            output_filename=config["output_filename"],
+            target_column=self.schema["TARGET_COLUMN"]["name"],
+        )
+
+    def get_fare_constants(self) -> dict[str, float]:
+        """
+        Retrieves NYC-specific fare constants.
+
+        Returns:
+            dict[str, float]: Dictionary of fare constants (mta_tax, extra, etc.)
+        """
+        return self.config.get("fare_constants", {})

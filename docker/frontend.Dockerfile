@@ -23,7 +23,6 @@ COPY src /app/src
 COPY artifacts /app/artifacts
 COPY config /app/config
 COPY reports /app/reports
-COPY app.py /app/app.py
 
 # Install the project
 RUN uv sync --frozen --no-dev
@@ -32,4 +31,4 @@ RUN uv sync --frozen --no-dev
 EXPOSE 8501
 
 # Start the Streamlit application
-CMD ["uv", "run", "streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["uv", "run", "streamlit", "run", "src/app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

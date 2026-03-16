@@ -10,7 +10,7 @@ import sys
 import polars as pl
 
 from src.entity.config_entity import FeatureEngineeringConfig
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.feature_utils import encode_cyclical
 from src.utils.logger import get_logger
 
@@ -106,9 +106,10 @@ class FeatureEngineering:
             tuple: (train_df, val_df, test_df)
         """
         logger.info(
-            f"Splitting data (Train: {self.config.train_months_start}-{self.config.train_months_end}, "
-            f"Val: {self.config.val_months_start}-{self.config.val_months_end}, "
-            f"Test: {self.config.test_months_start}-{self.config.test_months_end})..."
+            f"Splitting data (Train: {self.config.train_months_start}-"
+            f"{self.config.train_months_end}, Val: {self.config.val_months_start}-"
+            f"{self.config.val_months_end}, Test: {self.config.test_months_start}-"
+            f"{self.config.test_months_end})..."
         )
 
         train_df = df.filter(
@@ -145,7 +146,7 @@ class FeatureEngineering:
         4. Saves artifacts.
 
         Raises:
-            CustomException: If execution fails.
+            CustomExceptionError: If execution fails.
         """
         try:
             logger.info("Loading cleaned data for feature engineering...")
@@ -178,4 +179,4 @@ class FeatureEngineering:
             logger.info("Feature Engineering completed successfully.")
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

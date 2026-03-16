@@ -2,7 +2,7 @@
 
 ## 1. Executive Summary
 
-The `app.py` Streamlit application serves as the interactive frontend (Phase 5) of the NYC Taxi Tip Prediction System. Operating strictly as a UI layer, it bridges the complex machine learning pipelines (Feature, Training, Inference - FTI) and business stakeholders (like Fleet Managers). The app allows users to visually explore the model's performance, understand what drives tip amounts, and simulate real-time rides, delegating all heavy machine learning computations to a robust FastAPI microservice backend.
+The `src/app/` modular package serves as the interactive frontend (Phase 5) of the NYC Taxi Tip Prediction System. Operating strictly as a UI layer, it bridges the complex machine learning pipelines (Feature, Training, Inference - FTI) and business stakeholders (like Fleet Managers). The app allows users to visually explore the model's performance, understand what drives tip amounts, and simulate real-time rides, delegating all heavy machine learning computations to a robust FastAPI microservice backend.
 
 ## 2. Architecture & The FTI Pattern Integration
 
@@ -15,6 +15,11 @@ Instead of running prediction computations on the fly in the frontend, the Strea
 *   **Strict Pydantic Contracts:** All communication between the Streamlit UI and the FastAPI backend is validated via strict Pydantic schemas (`PredictRequest`, `PredictResponse` in `src/entity/api_entity.py`), enforcing rigid type safety before any code touches the ML model.
 *   **Training-Serving Parity:** Incoming requests explicitely pass through the identical `src/utils/feature_utils.py:encode_cyclical` function used during the offline DVC feature engineering phase, structurally preventing the model from predicting on skewed temporal properties.
 *   **Custom Exception Handling:** The backend raises standard HTTP exceptions combined with comprehensive exception chaining (`raise from e`) when the model registry fails, preventing silent failures and displaying clean stack traces.
+*   **Modular Layout:** The frontend logic is no longer a monolith. It is structured under `src/app/` following **Clean Architecture** principles:
+    *   `main.py`: The entry orchestrator and navigation system.
+    *   `styles.py`: Centralized CSS injection and aesthetic theme management.
+    *   `data_loaders.py`: Optimized I/O handlers for artifact consumption.
+    *   `pages/`: Individual specialized modules for the Dashboard and AI Chat Analyst.
 
 ### Artifact Consumption
 To ensure the dashboard loads quickly and interactively, it utilizes Streamlit's caching mechanisms (`@st.cache_data`) to parse pre-computed outputs from the orchestrated DVC pipelines:
@@ -23,7 +28,7 @@ To ensure the dashboard loads quickly and interactively, it utilizes Streamlit's
 *   **Training Parameters:** Loads `config/params.yaml` to extract the metric weights used during automated champion selection.
 
 ## 3. Orchestrator Launchpad (`launch_app.bat`)
-To ensure smooth boots of this decoupled architecture, the system relies on a central windows batch orchestrator (`launch_app.bat`), or standard `make` commands (`make serve` & `streamlit run app.py`).
+To ensure smooth boots of this decoupled architecture, the system relies on a central windows batch orchestrator (`launch_app.bat`), or standard `make` commands (`make serve` & `uv run streamlit run src/app/main.py`).
 Mimicking enterprise Agentic System tooling, this script guarantees reliable startups via sequential checks:
 1.  **Dependency Synchronization:** Runs `uv sync` to ensure local environments match the `pyproject.toml` lockfile exactly.
 2.  **API Background Execution:** Spins up the Uvicorn/FastAPI server (`src.api.predict_api:app --reload`) directly executing logic independently maintaining visual cleanliness.

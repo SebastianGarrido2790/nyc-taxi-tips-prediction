@@ -61,7 +61,7 @@ Taxi drivers and fleet operators lack actionable insights into the factors that 
     * Trained model artifact saved to `models/` (Model Registry).
     * Evaluation metrics (MSE, R2) logged.
     * Feature Importance plot saved to `reports/figures/`.
-    
+
 #### 4.3 Inference Pipeline (Model Serving)
 * **Input:**
     * New batch of raw data (e.g., "last hour" simulation).

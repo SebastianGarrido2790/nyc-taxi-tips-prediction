@@ -11,7 +11,7 @@ import sys
 import polars as pl
 
 from src.entity.config_entity import DataTransformationConfig
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -121,7 +121,7 @@ class DataTransformation:
         4. Saves cleaned data as Parquet.
 
         Raises:
-            CustomException: If transformation fails.
+            CustomExceptionError: If transformation fails.
         """
         try:
             logger.info("Loading data for transformation...")
@@ -159,4 +159,4 @@ class DataTransformation:
             logger.info("Data Transformation completed successfully.")
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

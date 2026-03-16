@@ -7,6 +7,7 @@ These tests verify:
 3. The component correctly handles numeric features and subsampling.
 """
 
+import contextlib
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -142,10 +143,7 @@ def test_champion_selection_logic(mock_trainer_config):
             if diff == 0:
                 norm_val = 1.0
             else:
-                if m == "r2":
-                    norm_val = (val - b["min"]) / diff
-                else:
-                    norm_val = (b["max"] - val) / diff
+                norm_val = (val - b["min"]) / diff if m == "r2" else (b["max"] - val) / diff
             total_score += weight * norm_val
         r["final_score"] = total_score
 
@@ -192,13 +190,11 @@ def test_subsampling_logic(mock_trainer_config, dummy_train_val_data):
                 patch("mlflow.sklearn.log_model"),
             ):
                 # Mock the loop to break after first model or handle result
-                try:
+                with contextlib.suppress(Exception):
                     trainer.train_and_register()
-                except Exception:
-                    pass
 
                 # Verify that it was called and check size
                 assert mock_dummy_inst.fit.called
                 args, _ = mock_dummy_inst.fit.call_args
-                X_train_sub = args[0]
-                assert X_train_sub.shape[0] == 10
+                x_train_sub = args[0]
+                assert x_train_sub.shape[0] == 10

@@ -1,0 +1,114 @@
+Ruff: lint & auto-fix....................................................Passed
+Ruff: format.............................................................Passed
+Pyright: strict type checking............................................Failed
+- hook id: pyright
+- exit code: 1
+
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\main.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\main.py:19:33 - error: "CustomException" is unknown import symbol (reportAttributeAccessIssue)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\taxi_analyst_agent.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\taxi_analyst_agent.py:21:6 - error: Import "langchain_core.messages" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\taxi_analyst_agent.py:22:6 - error: Import "langchain_core.tools" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\taxi_analyst_agent.py:23:6 - error: Import "langchain_google_genai" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\agents\taxi_analyst_agent.py:24:6 - error: Import "langgraph.prebuilt" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\api\predict_api.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\api\predict_api.py:12:8 - error: Import "joblib" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\api\predict_api.py:13:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\api\predict_api.py:14:6 - error: Import "fastapi" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\data_loaders.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\data_loaders.py:13:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\data_loaders.py:14:8 - warning: Import "requests" could not be resolved from source (reportMissingModuleSource)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\data_loaders.py:15:8 - error: Import "streamlit" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\data_loaders.py:16:8 - warning: Import "yaml" could not be resolved from source (reportMissingModuleSource)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\main.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\main.py:8:8 - error: Import "streamlit" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\main.py:69:21 - error: Argument of type "dict[str, Any] | None" cannot be assigned to parameter "metrics" of type "dict[str, Any]" in function "render_dashboard"
+  ┬á┬áType "dict[str, Any] | None" is not assignable to type "dict[str, Any]"
+  ┬á┬á┬á┬á"None" is not assignable to "dict[str, Any]" (reportArgumentType)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\chat.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\chat.py:7:8 - error: Import "streamlit" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\dashboard.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\dashboard.py:10:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\dashboard.py:11:8 - error: Import "plotly.express" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\dashboard.py:12:8 - warning: Import "requests" could not be resolved from source (reportMissingModuleSource)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\pages\dashboard.py:13:8 - error: Import "streamlit" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\styles.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\app\styles.py:7:8 - error: Import "streamlit" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_ingestion.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_ingestion.py:11:8 - error: Import "polars" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_transformation.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_transformation.py:11:8 - error: Import "polars" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_validation.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\data_validation.py:11:8 - error: Import "polars" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\feature_engineering.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\feature_engineering.py:10:8 - error: Import "polars" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_evaluation.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_evaluation.py:12:8 - error: Import "joblib" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_evaluation.py:13:8 - error: Import "mlflow" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_evaluation.py:14:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_evaluation.py:15:6 - error: Import "sklearn.metrics" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:14:8 - error: Import "joblib" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:15:8 - error: Import "mlflow" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:16:8 - error: Import "mlflow.sklearn" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:17:8 - error: Import "mlflow.xgboost" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:18:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:19:6 - error: Import "sklearn.dummy" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:20:6 - error: Import "sklearn.ensemble" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:21:6 - error: Import "sklearn.linear_model" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:22:6 - error: Import "sklearn.metrics" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\model_trainer.py:23:6 - error: Import "xgboost" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\predict_model.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\predict_model.py:11:8 - error: Import "joblib" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\components\predict_model.py:12:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\tools\taxi_prediction_tool.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\tools\taxi_prediction_tool.py:11:8 - warning: Import "requests" could not be resolved from source (reportMissingModuleSource)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\common.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\common.py:13:8 - warning: Import "yaml" could not be resolved from source (reportMissingModuleSource)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\logger.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\logger.py:64:18 - error: Import "rich.logging" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\mlflow_config.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\mlflow_config.py:9:8 - warning: Import "yaml" could not be resolved from source (reportMissingModuleSource)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\src\utils\model_utils.py:3:8 - error: Import "numpy" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\conftest.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\conftest.py:14:8 - error: Import "polars" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\conftest.py:15:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_agent_tools.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_agent_tools.py:10:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_agent_tools.py:12:6 - warning: Import "requests.exceptions" could not be resolved from source (reportMissingModuleSource)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_api.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_api.py:11:6 - error: Import "fastapi.testclient" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_data_ingestion.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_data_ingestion.py:11:8 - error: Import "polars" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_data_ingestion.py:12:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_data_transformation.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_data_transformation.py:13:8 - error: Import "polars" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_feature_engineering.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_feature_engineering.py:13:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_evaluation.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_evaluation.py:12:8 - error: Import "numpy" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_evaluation.py:13:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_evaluation.py:14:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_trainer.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_trainer.py:13:8 - error: Import "numpy" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_trainer.py:14:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_model_trainer.py:15:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_predict_model.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_predict_model.py:12:8 - error: Import "numpy" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_predict_model.py:13:8 - error: Import "pandas" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_predict_model.py:14:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_taxi_analyst_agent.py
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_taxi_analyst_agent.py:11:8 - error: Import "pytest" could not be resolved (reportMissingImports)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_taxi_analyst_agent.py:30:31 - error: Cannot access attribute "args_schema" for class "FunctionType"
+  ┬á┬áAttribute "args_schema" is unknown (reportFunctionMemberAccess)
+  c:\Users\sebas\Desktop\nyc-taxi-tips-prediction\tests\unit\test_taxi_analyst_agent.py:106:26 - error: Cannot access attribute "invoke" for class "FunctionType"
+  ┬á┬áAttribute "invoke" is unknown (reportFunctionMemberAccess)
+59 errors, 7 warnings, 0 informations
+
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check for added large files..............................................Passed
+detect private key.......................................................Passed

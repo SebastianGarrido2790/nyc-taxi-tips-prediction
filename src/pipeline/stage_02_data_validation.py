@@ -8,7 +8,7 @@ import sys
 
 from src.components.data_validation import DataValidation
 from src.config.configuration import ConfigurationManager
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 STAGE_NAME = "Data Validation"
@@ -36,7 +36,7 @@ class DataValidationTrainingPipeline:
             data_validation.validate_all_columns()
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e
 
 
 if __name__ == "__main__":

@@ -112,7 +112,7 @@ def test_tool_predict_success(mock_post, mock_tool, valid_rides):
     assert results[0]["predicted_tip"] == 3.45
 
     # Ensure the URL is hit properly
-    assert mock_post.call_args[0][0] == "http://fake-backend:8000/predict"
+    assert mock_post.call_args[0][0] == "http://fake-backend:8000/v1/predict"
 
 
 @patch("src.tools.taxi_prediction_tool.requests.post")

@@ -90,9 +90,9 @@ def test_evaluate_workflow(
 
     # 2. Check model predict called with right shape (features only)
     args, _ = mock_model.predict.call_args
-    X_test_passed = args[0]
-    assert X_test_passed.shape == (10, 2)
-    assert "tip_amount" not in X_test_passed.columns
+    x_test_passed = args[0]
+    assert x_test_passed.shape == (10, 2)
+    assert "tip_amount" not in x_test_passed.columns
 
     # 3. Check metrics dictionary
     assert "test_mae" in metrics

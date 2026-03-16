@@ -48,14 +48,14 @@ def error_message_detail(error: Exception | str, error_detail: ModuleType) -> st
     return error_message
 
 
-class CustomException(Exception):
+class CustomExceptionError(Exception):
     """
     Custom Exception class to provide detailed traceback information within the message.
     """
 
     def __init__(self, error_message: Exception | str, error_detail: ModuleType):
         """
-        Initialize the CustomException.
+        Initialize the CustomExceptionError.
 
         Args:
             error_message (Exception | str): The original error message

@@ -11,7 +11,7 @@ import sys
 import polars as pl
 
 from src.entity.config_entity import DataValidationConfig
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -40,7 +40,7 @@ class DataValidation:
             bool: True if validation passes, False otherwise.
 
         Raises:
-            CustomException: If validation fails critically or file I/O errors.
+            CustomExceptionError: If validation fails critically or file I/O errors.
         """
         try:
             validation_status = True
@@ -85,4 +85,4 @@ class DataValidation:
             return validation_status
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

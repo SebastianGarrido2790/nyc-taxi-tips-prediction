@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,7 +26,7 @@ def read_yaml(path_to_yaml: Path) -> dict:
         path_to_yaml (Path): Direct path to the YAML file to be read.
 
     Raises:
-        CustomException: If the YAML file is empty, malformed, or missing.
+        CustomExceptionError: If the YAML file is empty, malformed, or missing.
 
     Returns:
         dict: The parsed content of the YAML file.
@@ -37,7 +37,7 @@ def read_yaml(path_to_yaml: Path) -> dict:
             logger.info(f"yaml file: {path_to_yaml} loaded successfully")
             return content
     except Exception as e:
-        raise CustomException(e, sys) from e
+        raise CustomExceptionError(e, sys) from e
 
 
 def create_directories(path_to_directories: list[Path | str], verbose: bool = True):

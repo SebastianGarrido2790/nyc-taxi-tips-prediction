@@ -12,18 +12,18 @@ def get_feature_importances(model: Any) -> tuple[list[str], list[float]] | tuple
     Extracts feature importances or coefficients from an arbitrary trained machine learning model.
 
     Why no sklearn import?
-    This function uses "duck typing" to inspect the model's attributes (`hasattr`) rather than relying on
-    strict type checking (`isinstance()`) against specific libraries like scikit-learn or XGBoost. This
-    approach reduces hard dependencies, prevents import errors if packages change, and makes the
-    utility natively extendable across entirely different ML framework families.
+    This function uses "duck typing" to inspect the model's attributes (`hasattr`) rather than
+    relying on strict type checking (`isinstance()`) against specific libraries like scikit-learn
+    or XGBoost. This approach reduces hard dependencies, prevents import errors if packages
+    change, and makes the utility natively extendable across entirely different ML families.
 
     Args:
-        model (Any): The trained machine learning model object (e.g., sklearn estimator, XGBoost booster).
+        model (Any): The trained machine learning model object (e.g., sklearn estimator).
 
     Returns:
         tuple[list[str], list[float]] | tuple[None, None]: A tuple containing two lists:
             - feature_names (list[str]): The names of the features.
-            - importances (list[float]): The corresponding importance scores or absolute coefficients.
+            - importances (list[float]): The importance scores or absolute coefficients.
             Returns (None, None) if the model format is unsupported or an error occurs.
     """
     try:

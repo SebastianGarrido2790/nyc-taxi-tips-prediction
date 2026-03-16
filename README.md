@@ -9,7 +9,7 @@
    <img src="https://img.shields.io/badge/FastAPI-Microservice-009688?logo=fastapi&logoColor=white" alt="FastAPI">
    <img src="https://img.shields.io/badge/Docker-Containerization-2496ED?logo=docker&logoColor=white" alt="Docker">
    <img src="https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?logo=github-actions&logoColor=white" alt="GitHub Actions">
-  
+
   <h1>🚕 NYC Taxi Tip Prediction System 🚕</h1>
   <p><strong>A Production-Grade Agentic MLOps System implementing the strict FTI (Feature, Training, Inference) Pattern</strong></p>
 </div>
@@ -55,7 +55,7 @@ The entire MLOps lifecycle is governed seamlessly by **Data Version Control (DVC
 
 ## ️ Interactive Dashboard
 
-Bridging the gap between the complex backend and business stakeholders, a native **Streamlit Interactive Application** serves insights directly, consuming pre-computed artifacts. 
+Bridging the gap between the complex backend and business stakeholders, a native **Streamlit Interactive Application** serves insights directly, consuming pre-computed artifacts.
 
 <div align="center">
   <h3>📊 Dashboard & Evaluation</h3>
@@ -78,11 +78,35 @@ Bridging the gap between the complex backend and business stakeholders, a native
 
 ---
 
-## 🧪 Testing & Quality Assurance
-The codebase actively emphasizes "Testing Logic, not external Libraries," relying on `pytest`.
-* **Component Tracking**: Robust unit test coverage of logic gates across Ingestion, Transformation, Feature Engineering, and Model Training steps.
-* **Mock Handling**: Replaces massive physical disk reads with instantaneous in-memory `Polars` test fixtures for blazing-fast `pytest` assertions.
-* **Safeguards**: Specific edge-case traps evaluated extensively (e.g., zero distance handling, negative fares prevention, Temporal Data Leakage boundaries).
+## 🧪 Testing & Multi-Point Validation
+
+This system employs a rigorous multi-layered validation strategy to ensure it remains production-ready and free of regressions.
+
+### 🔬 Automated Testing Suite
+The codebase relies on `pytest` for deterministic logic verification:
+*   **Component Logic**: 100% coverage of critical cleaning rules, temporal split strategies, and feature engineering math.
+*   **Fast Execution**: Replaces massive physical disk reads with instantaneous in-memory `Polars` test fixtures.
+*   **Edge-Case Traps**: Extensive evaluation of boundaries (e.g., zero distance handling, negative fare prevention, agent tool hallucinations).
+
+### ✅ Production Quality Gates
+Beyond standard testing, we enforce a **Multi-Point System Validation** script (`validate_system.bat`) that must pass before any production deployment. It evaluates the four pillars of system health:
+
+1.  **Pillar 1: Static Code Quality**: Enforces strict `pyright` type checking and `ruff` linting/formatting.
+2.  **Pillar 2: Functional Logic & Coverage**: Executes the full `pytest` suite and enforces a **65% mandatory coverage gate**.
+3.  **Pillar 3: Pipeline Synchronization**: Verifies that the `DVC` DAG and all data artifacts are perfectly synchronized.
+4.  **Pillar 4: API Service Health**: Performs a runtime diagnostic against the versioned `/v1/health` endpoint.
+
+---
+
+## 📊 Project Analysis & Reports
+
+The project maintains a comprehensive suite of generated documentation and analytical reports acting as the "Master Source of Truth."
+
+*   **[Codebase Review & Production Readiness (v1.0)](reports/docs/evaluations/codebase_review_v1.0.md)**: A deep-dive audit assessing the system's alignment with elite MLOps standards, identifying strengths (FTI pattern, Brain vs. Brawn) and hardening requirements.
+*   **[System Validation Report](reports/docs/evaluations/system_validation_report.md)**: The latest verified pass status of all production quality gates.
+*   **[Test Suite Report](reports/docs/evaluations/test_suite_report.md)**: Detailed breakdown of current test coverage (67.82%) and logical verification steps.
+
+Detailed architecture diagrams, decision logs, and runbooks can be found in the `reports/docs/` directory.
 
 ---
 
@@ -106,7 +130,7 @@ The codebase actively emphasizes "Testing Logic, not external Libraries," relyin
 ## � Setup & Execution
 
 ### 1. Installation Environment
-This project rigorously depends on modern `uv` dependency management for lightning-fast setup. 
+This project rigorously depends on modern `uv` dependency management for lightning-fast setup.
 ```bash
 # Clone the repository
 git clone https://github.com/SebastianGarrido2790/nyc-taxi-tips-prediction.git
@@ -127,8 +151,14 @@ uv run dvc pull
 uv run dvc repro
 ```
 
-### 3. Environment Configuration
-Create a `.env` file in the root directory to define the MLflow tracking URI and API configurations. Example `.env`:
+### 3. System Validation
+Before launching the services, verify the system's health across all 4 pillars. This is mandatory for production-grade assurance:
+```bash
+.\validate_system.bat
+```
+
+### 4. Environment Configuration
+Create a `.env` file in the root directory to define the MLflow tracking URI and API configurations. Example `.env.example`:
 ```env
 # Define the environment (local/staging/production)
 ENV=local
@@ -148,7 +178,7 @@ GOOGLE_API_KEY=AIza...
 MLFLOW_TRACKING_URI=file:./mlruns
 ```
 
-### 4. Launching the App (Local Dev)
+### 5. Launching the App (Local Dev)
 Interact natively with the trained artifacts using the Streamlit visual dashboard.
 
 **Option A - Automated Launch (Windows)**:
@@ -164,10 +194,10 @@ Run the backend and frontend simultaneously in separate terminals:
 uv run uvicorn src.api.predict_api:app --reload --port 8000
 
 # Start the Streamlit frontend (in a new terminal)
-uv run streamlit run app.py
+uv run streamlit run src/app/main.py
 ```
 
-### 5. Production Deployment (Docker Compose)
+### 6. Production Deployment (Docker Compose)
 Launch the entire system inside isolated, network-meshed containers:
 ```bash
 # Build and spin up the services

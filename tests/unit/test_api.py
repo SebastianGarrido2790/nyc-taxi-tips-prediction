@@ -25,7 +25,7 @@ def test_health_check_endpoint():
 
 
 def test_predict_endpoint_validation():
-    """Test the /v1/predict endpoint for validation errors when payload is missing required fields."""
+    """Test the /v1/predict endpoint for validation errors when payload is incomplete."""
     # Sending empty payload
     response = client.post("/v1/predict", json=[{}])
     assert response.status_code == 422  # Unprocessable Entity

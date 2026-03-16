@@ -72,4 +72,3 @@ stages:
     metrics:
       - artifacts/model_evaluation/metrics.json:
           cache: false
-

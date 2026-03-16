@@ -11,7 +11,7 @@ import sys
 from src.components.model_evaluation import ModelEvaluation
 from src.components.predict_model import PredictModel
 from src.config.configuration import ConfigurationManager
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger, log_spacer
 
 logger = get_logger(__name__, headline="Stage: Model Evaluation")
@@ -25,15 +25,15 @@ class ModelEvaluationPipeline:
 
     def __init__(self):
         """Initializes the ModelEvaluation Pipeline."""
-        pass
+        self.config = ConfigurationManager()
 
     def main(self):
         """
         Executes the main functionality of the Model Evaluation pipeline stage.
         """
         try:
-            config = ConfigurationManager()
-            model_eval_config = config.get_model_evaluation_config()
+            model_eval_config = self.config.get_model_evaluation_config()
+            predict_model_config = self.config.get_predict_model_config()
 
             log_spacer()
 
@@ -46,11 +46,11 @@ class ModelEvaluationPipeline:
 
             # Step 2: Inference simulation
             logger.info("Running Batch Inference Simulation...")
-            predict_model = PredictModel(config=model_eval_config)
+            predict_model = PredictModel(config=predict_model_config)
             predict_model.perform_inference()
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e
 
 
 if __name__ == "__main__":
@@ -61,4 +61,4 @@ if __name__ == "__main__":
         logger.info(f">>>>>> {STAGE_NAME} completed <<<<<<<")
     except Exception as e:
         logger.exception("Exception occurred during execution:")
-        raise CustomException(e, sys) from e
+        raise CustomExceptionError(e, sys) from e

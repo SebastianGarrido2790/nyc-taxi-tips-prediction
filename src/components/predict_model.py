@@ -11,9 +11,9 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from src.entity.config_entity import ModelEvaluationConfig
+from src.entity.config_entity import PredictModelConfig
 from src.utils.common import create_directories
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__, headline="Model Inference")
@@ -24,41 +24,38 @@ class PredictModel:
     Simulates batch inference using the champion model and fresh data.
     """
 
-    def __init__(self, config: ModelEvaluationConfig):
+    def __init__(self, config: PredictModelConfig):
         """
-        Initializes the PredictModel with the evaluation configuration.
+        Initializes the PredictModel with the inference configuration.
 
         Args:
-            config (ModelEvaluationConfig): Configuration for model path and data.
+            config (PredictModelConfig): Configuration for model path and data.
         """
         self.config = config
 
-    def perform_inference(
-        self,
-        predictions_dir: str = "artifacts/predictions",
-        output_filename: str = "inference_results.csv",
-    ) -> None:
+    def perform_inference(self) -> None:
         """
         Loads the test data (as fresh batch), loads the model, generates predictions,
         and saves the output predictions to a CSV file.
         """
         try:
             # Ensure predictions directory exists
-            create_directories([Path(predictions_dir)])
+            create_directories([self.config.root_dir])
 
             # Load dataset representing the new batch of data
             # Here, we use the test set as our fresh data for simulation.
             logger.info(f"Loading incoming batch data from {self.config.test_data_path}")
             batch_data = pd.read_parquet(self.config.test_data_path)
 
-            # Extract features (drop tip_amount as it would not be available in real inference)
-            if "tip_amount" in batch_data.columns:
-                X_batch = batch_data.drop(["tip_amount"], axis=1)
+            # Extract features (drop target as it would not be available in real inference)
+            target = self.config.target_column
+            if target in batch_data.columns:
+                x_batch = batch_data.drop([target], axis=1)
             else:
-                X_batch = batch_data.copy()
+                x_batch = batch_data.copy()
 
             # Process features for prediction (keep only numeric)
-            X_batch_processed = X_batch.select_dtypes(include=["number"])
+            x_batch_processed = x_batch.select_dtypes(include=["number"])
 
             # Load the model directly from local system
             # NOTE: Production systems might load from MLflow Model Registry like:
@@ -75,7 +72,7 @@ class PredictModel:
             logger.info(f"Loaded model from {actual_model_path}")
 
             # Predict
-            predictions = model.predict(X_batch_processed)
+            predictions = model.predict(x_batch_processed)
 
             # Persist results
             # We join predictions with an identifier like VendorID or tpep_pickup_datetime
@@ -88,10 +85,10 @@ class PredictModel:
             if "VendorID" in batch_data.columns:
                 results_df["VendorID"] = batch_data["VendorID"].values
 
-            output_path = Path(predictions_dir) / output_filename
+            output_path = self.config.root_dir / self.config.output_filename
             results_df.to_csv(output_path, index=False)
 
             logger.info(f"Inference complete! Results saved to {output_path}")
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

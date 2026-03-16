@@ -7,6 +7,7 @@ Usage:
     logger.info("Started data download...")
 """
 
+import contextlib
 import logging
 import sys
 from datetime import datetime
@@ -15,10 +16,8 @@ from pathlib import Path
 
 # Force UTF-8 encoding for Windows console
 if sys.stdout is not None and getattr(sys.stdout, "encoding", "").lower() != "utf-8":
-    try:
+    with contextlib.suppress(AttributeError):
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore
-    except AttributeError:
-        pass
 
 LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)

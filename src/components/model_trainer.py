@@ -23,7 +23,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from xgboost import XGBRegressor
 
 from src.entity.config_entity import ModelTrainerConfig
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__, headline="Component: Model Trainer")
@@ -66,17 +66,17 @@ class ModelTrainer:
                 logger.info(f"New training set shape: {train_data.shape}")
 
             # Separate features and target
-            target = "tip_amount"
-            X_train = train_data.drop([target], axis=1)
+            target = self.config.target_column
+            x_train = train_data.drop([target], axis=1)
             y_train = train_data[target]
-            X_val = val_data.drop([target], axis=1)
+            x_val = val_data.drop([target], axis=1)
             y_val = val_data[target]
 
             # Drop non-numeric columns (like Timestamps) which algorithms can't handle
-            X_train = X_train.select_dtypes(include=["number"])
-            X_val = X_val.select_dtypes(include=["number"])
+            x_train = x_train.select_dtypes(include=["number"])
+            x_val = x_val.select_dtypes(include=["number"])
 
-            logger.info(f"Numeric features selected: {list(X_train.columns)}")
+            logger.info(f"Numeric features selected: {list(x_train.columns)}")
 
             # Define candidate models
             models = {
@@ -99,10 +99,10 @@ class ModelTrainer:
                     logger.info(f"Training {model_name}...")
 
                     # Train
-                    model.fit(X_train, y_train)
+                    model.fit(x_train, y_train)
 
                     # Predict on Validation data
-                    y_pred = model.predict(X_val)
+                    y_pred = model.predict(x_val)
 
                     # Metrics
                     mae = mean_absolute_error(y_val, y_pred)
@@ -144,7 +144,7 @@ class ModelTrainer:
 
             # Find min/max for each metric across all models for normalization
             bounds = {}
-            for m in metrics_to_use.keys():
+            for m in metrics_to_use:
                 vals = [r[m] for r in results]
                 bounds[m] = {"min": min(vals), "max": max(vals)}
 
@@ -158,12 +158,7 @@ class ModelTrainer:
                     if diff == 0:
                         norm_val = 1.0
                     else:
-                        if m == "r2":
-                            # Higher is better
-                            norm_val = (val - b["min"]) / diff
-                        else:
-                            # Lower is better (MAE, MSE)
-                            norm_val = (b["max"] - val) / diff
+                        norm_val = (val - b["min"]) / diff if m == "r2" else (b["max"] - val) / diff
 
                     total_score += weight * norm_val
 
@@ -177,9 +172,7 @@ class ModelTrainer:
                 f"Final Weighted Score: {champion['final_score']:.4f}"
             )
             # Log individual metrics of the champion for reference
-            metric_details = " | ".join(
-                [f"{k.upper()}: {champion[k]:.4f}" for k in metrics_to_use.keys()]
-            )
+            metric_details = " | ".join([f"{k.upper()}: {champion[k]:.4f}" for k in metrics_to_use])
             logger.info(f"Selected metrics: {metrics_to_use}")
             logger.info(f"Champion breakdown: {metric_details}")
 
@@ -200,4 +193,4 @@ class ModelTrainer:
             logger.info(f"Registered champion model as '{champion['name']}'")
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

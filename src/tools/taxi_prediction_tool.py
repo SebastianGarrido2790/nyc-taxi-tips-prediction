@@ -32,14 +32,19 @@ class TaxiRideInput(BaseModel):
     total_amount: float = Field(
         ...,
         gt=0,
-        description="Total amount charged to the passenger in USD, excluding the tip. Must be greater than 0.",
+        description=(
+            "Total amount charged to the passenger in USD, excluding the tip. "
+            "Must be greater than 0."
+        ),
     )
     passenger_count: int = Field(
         ..., ge=1, le=6, description="Number of passengers in the vehicle (1 to 6)."
     )
     ratecode_id: int = Field(
         ...,
-        description="Final rate code in effect (e.g., 1 for Standard, 2 for JFK, 3 for Newark, etc.).",
+        description=(
+            "Final rate code in effect (e.g., 1 for Standard, 2 for JFK, 3 for Newark, etc.)."
+        ),
     )
     airport_fee: float = Field(
         0.0, ge=0, description="Additional fee for airport trips in USD, if applicable."
@@ -80,11 +85,12 @@ class TaxiPredictionTool:
         Initializes the Tool with the target ML Serving endpoint.
 
         Args:
-            api_url: The base URL of the FastAPI service. Defaults to the environment variable or localhost.
+            api_url: The base URL of the FastAPI service.
+                     Defaults to the environment variable or localhost.
         """
         self.api_url = api_url or os.getenv("API_URL", "http://localhost:8000")
-        self.predict_endpoint = f"{self.api_url}/predict"
-        self.health_endpoint = f"{self.api_url}/health"
+        self.predict_endpoint = f"{self.api_url}/v1/predict"
+        self.health_endpoint = f"{self.api_url}/v1/health"
 
     def predict_tips(self, rides: list[TaxiRideInput]) -> list[dict[str, Any]]:
         """
@@ -116,19 +122,19 @@ class TaxiPredictionTool:
 
             return data
 
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as e:
             raise PredictionToolError(
                 f"Model Serving API timed out after 5 seconds at {self.predict_endpoint}. "
                 "Ensure the deployment is healthy."
-            )
+            ) from e
         except requests.exceptions.HTTPError as e:
             raise PredictionToolError(
                 f"Model Serving API returned HTTP error {e.response.status_code}: {e.response.text}"
-            )
+            ) from e
         except requests.exceptions.RequestException as e:
             raise PredictionToolError(
                 f"Network error communicating with the Model Serving API: {e}"
-            )
+            ) from e
 
     def check_health(self) -> dict[str, Any]:
         """
@@ -139,4 +145,5 @@ class TaxiPredictionTool:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise PredictionToolError(f"Model capability is currently offline or unreachable: {e}")
+            msg = f"Model capability is currently offline or unreachable: {e}"
+            raise PredictionToolError(msg) from e

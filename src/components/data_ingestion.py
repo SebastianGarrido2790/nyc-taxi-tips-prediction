@@ -11,7 +11,7 @@ import sys
 import polars as pl
 
 from src.entity.config_entity import DataIngestionConfig
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -104,7 +104,7 @@ class DataIngestion:
         4. Saves the enriched dataset as a Parquet file.
 
         Raises:
-            CustomException: If any error occurs during ingestion.
+            CustomExceptionError: If any error occurs during ingestion.
         """
         logger.info("Starting Data Ingestion execution...")
 
@@ -166,4 +166,4 @@ class DataIngestion:
             logger.info(f"Data Ingestion completed successfully. Shape: {trips_df.shape}")
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

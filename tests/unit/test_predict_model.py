@@ -14,7 +14,7 @@ import pandas as pd
 import pytest
 
 from src.components.predict_model import PredictModel
-from src.entity.config_entity import ModelEvaluationConfig
+from src.entity.config_entity import PredictModelConfig
 
 
 @pytest.fixture
@@ -23,13 +23,12 @@ def mock_predict_config(tmp_path):
     model_path = tmp_path / "model.joblib"
     model_path.touch()
 
-    return ModelEvaluationConfig(
-        root_dir=tmp_path / "model_evaluation",
+    return PredictModelConfig(
+        root_dir=tmp_path / "predictions",
         test_data_path=tmp_path / "test.parquet",
         model_path=model_path,
-        all_params={},
-        metric_file_name=tmp_path / "metrics.json",
-        mlflow_uri="file:./mlruns",
+        output_filename="inference_results.csv",
+        target_column="tip_amount",
     )
 
 
@@ -62,13 +61,8 @@ def test_predict_model_inference_with_target(
     mock_model.predict.return_value = np.array([1.9, 1.6, 2.8])
     mock_load_model.return_value = mock_model
 
-    predictions_dir = tmp_path / "predictions"
-    output_filename = "inference_results.csv"
-
     predictor = PredictModel(mock_predict_config)
-    predictor.perform_inference(
-        predictions_dir=str(predictions_dir), output_filename=output_filename
-    )
+    predictor.perform_inference()
 
     # Asserts
     # Data load and preprocessing
@@ -76,16 +70,16 @@ def test_predict_model_inference_with_target(
     assert args[0] == mock_predict_config.model_path
 
     args, _ = mock_model.predict.call_args
-    X_passed = args[0]
+    x_passed = args[0]
 
     # Should drop tip_amount
-    assert "tip_amount" not in X_passed.columns
+    assert "tip_amount" not in x_passed.columns
     # VendorID is numeric, so it should be passed according to the current logic
-    assert "VendorID" in X_passed.columns
-    assert X_passed.shape == (3, 2)
+    assert "VendorID" in x_passed.columns
+    assert x_passed.shape == (3, 2)
 
     # Check output persistence
-    output_file_path = predictions_dir / output_filename
+    output_file_path = mock_predict_config.root_dir / mock_predict_config.output_filename
     assert output_file_path.exists()
 
     result_df = pd.read_csv(output_file_path)
@@ -117,23 +111,22 @@ def test_predict_model_inference_production_data(
     mock_model.predict.return_value = np.array([2.5, 3.5, 4.5])
     mock_load_model.return_value = mock_model
 
-    predictions_dir = tmp_path / "predictions_prod"
-    output_filename = "prod_results.csv"
+    # Custom config for production data test
+    mock_predict_config.root_dir = tmp_path / "predictions_prod"
+    mock_predict_config.output_filename = "prod_results.csv"
 
     predictor = PredictModel(mock_predict_config)
-    predictor.perform_inference(
-        predictions_dir=str(predictions_dir), output_filename=output_filename
-    )
+    predictor.perform_inference()
 
     # Asserts
     args, _ = mock_model.predict.call_args
-    X_passed = args[0]
+    x_passed = args[0]
 
     # Should only contain purely numeric features
-    assert "non_numeric" not in X_passed.columns
-    assert X_passed.shape == (3, 2)
+    assert "non_numeric" not in x_passed.columns
+    assert x_passed.shape == (3, 2)
 
-    output_file_path = predictions_dir / output_filename
+    output_file_path = mock_predict_config.root_dir / mock_predict_config.output_filename
     assert output_file_path.exists()
 
     result_df = pd.read_csv(output_file_path)

@@ -2,9 +2,9 @@
 Data entity definitions for project configuration.
 
 This module defines the Pydantic models (data contracts) used throughout the pipeline.
-Using Pydantic ensures that all configuration values are validated for fully typed with generics
-(e.g., dict[str, Any] and dict[str, float]) providing type hints for nested configurations across the pipelines,
-and type-presence before the pipeline begins execution, preventing runtime attribute errors.
+Using Pydantic ensures that all configuration values are validated and fully typed with generics
+(e.g., dict[str, Any] and dict[str, float]) providing type hints for nested configurations
+across the pipelines, and type-presence before the pipeline begins execution.
 """
 
 from pathlib import Path
@@ -126,6 +126,7 @@ class ModelTrainerConfig(BaseModel):
     mlflow_uri: str
     subsample_fraction: float
     selection_metrics: dict[str, float]
+    target_column: str = "tip_amount"
 
 
 class ModelEvaluationConfig(BaseModel):
@@ -149,3 +150,18 @@ class ModelEvaluationConfig(BaseModel):
     all_params: dict[str, dict[str, Any]]
     metric_file_name: Path
     mlflow_uri: str
+    target_column: str = "tip_amount"
+
+
+class PredictModelConfig(BaseModel):
+    """
+    Configuration for the simulated batch inference stage.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    root_dir: Path
+    test_data_path: Path
+    model_path: Path
+    output_filename: str
+    target_column: str = "tip_amount"

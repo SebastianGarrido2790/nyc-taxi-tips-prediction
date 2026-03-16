@@ -16,7 +16,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from src.entity.config_entity import ModelEvaluationConfig
 from src.utils.common import save_json
-from src.utils.exception import CustomException
+from src.utils.exception import CustomExceptionError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__, headline="Model Evaluation")
@@ -51,14 +51,14 @@ class ModelEvaluation:
                 logger.info(f"MLflow Tracking URI set to: {self.config.mlflow_uri}")
 
             # Load test dataset
-            target = "tip_amount"
+            target = self.config.target_column
             test_data = pd.read_parquet(self.config.test_data_path)
 
-            X_test = test_data.drop([target], axis=1)
+            x_test = test_data.drop([target], axis=1)
             y_test = test_data[target]
 
             # Drop non-numeric columns
-            X_test = X_test.select_dtypes(include=["number"])
+            x_test = x_test.select_dtypes(include=["number"])
             logger.info("Loaded test dataset successfully.")
 
             # Load model
@@ -71,7 +71,7 @@ class ModelEvaluation:
             logger.info(f"Loaded champion model from {actual_model_path}")
 
             # Generate predictions
-            y_pred = model.predict(X_test)
+            y_pred = model.predict(x_test)
 
             # Calculate metrics
             mae = mean_absolute_error(y_test, y_pred)
@@ -94,4 +94,4 @@ class ModelEvaluation:
             return metrics
 
         except Exception as e:
-            raise CustomException(e, sys) from e
+            raise CustomExceptionError(e, sys) from e

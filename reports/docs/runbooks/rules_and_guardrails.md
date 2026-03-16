@@ -247,9 +247,20 @@ Lint & Format (Ruff) ───► Strict Type Checking (Pyright) ───► Un
 
 A PR **cannot be deployed** manually overriding failed Action runs.
 
-Local testing should utilize the standardized `Makefile` commands (`make format`, `make lint`, `make typecheck`, `make test-ci`) to emulate CI.
+### 7.3 Multi-Point System Validation
+Before any production deployment or major architectural PR, the local multi-point validation script must be executed to verify all four pillars of health:
 
-### 7.3 Unit Test Requirements
+```bash
+.\validate_system.bat
+```
+
+This script orchestrates:
+1. **Static Analysis**: Pyright and Ruff checks.
+2. **Logic & Coverage**: Pytest with a mandatory >65% coverage gate.
+3. **Synchronization**: DVC artifact and lineage verification.
+4. **Service Health**: Runtime check against versioned FastAPI endpoints.
+
+### 7.4 Unit Test Requirements
 
 Whenever testing explicit Data transformations or Inference endpoints, always emphasize **mocking external I/O integrations** (Polars mock sets, Requests timeouts, Joblib model loaders) via standard `unittest.mock`.
 Focus on Testing internal Logic execution, not the network robustness of third parties sequentially.

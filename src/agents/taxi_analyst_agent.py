@@ -5,8 +5,9 @@ This module constructs the LangGraph-based "Agentic Taxi Analyst" that powers th
 natural language chat interface on Page 2 of the Streamlit dashboard.
 
 Architecture (Brain vs. Brawn separation):
-- Brain: ChatGoogleGenerativeAI (gemini-2.5-flash) — reasoning, routing, natural language generation.
-- Brawn: `predict_taxi_tip` @tool — deterministic HTTP call to the FastAPI serving layer.
+- Brain: ChatGoogleGenerativeAI (gemini-2.5-flash) - reasoning, routing,
+  natural language generation.
+- Brawn: `predict_taxi_tip` @tool - deterministic HTTP call to the FastAPI serving layer.
 
 Usage:
     >>> agent = get_taxi_analyst_agent()
@@ -47,12 +48,12 @@ def predict_taxi_tip(rides: list[dict[str, Any]]) -> list[dict[str, Any]]:
     Required fields per ride:
         - trip_distance (float, > 0): Total distance in miles.
         - total_amount (float, > 0): Total fare in USD, excluding the tip.
-        - passenger_count (int, 1–6): Number of passengers.
-        - ratecode_id (int): Rate code — 1 Standard, 2 JFK, 3 Newark, 4 Nassau/Westchester,
+        - passenger_count (int, 1-6): Number of passengers.
+        - ratecode_id (int): Rate code - 1 Standard, 2 JFK, 3 Newark, 4 Nassau/Westchester,
           5 Negotiated, 6 Group.
-        - hour (int, 0–23): Pickup hour in 24-hour format.
-        - day (int, 1–31): Day of the month.
-        - month (int, 1–12): Month of the year.
+        - hour (int, 0-23): Pickup hour in 24-hour format.
+        - day (int, 1-31): Day of the month.
+        - month (int, 1-12): Month of the year.
         - airport_fee (float, optional, default 0.0): Airport surcharge in USD.
         - congestion_surcharge (float, optional, default 0.0): Congestion zone fee in USD.
         - tolls_amount (float, optional, default 0.0): Total tolls paid in USD.
@@ -68,9 +69,7 @@ def predict_taxi_tip(rides: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ValueError: If ride data fails Pydantic validation.
     """
     parsed_rides = [TaxiRideInput(**r) for r in rides]
-    taxi_tool = TaxiPredictionTool(
-        api_url=os.getenv("API_URL", "http://localhost:8000")
-    )
+    taxi_tool = TaxiPredictionTool(api_url=os.getenv("API_URL", "http://localhost:8000"))
     return taxi_tool.predict_tips(parsed_rides)
 
 
@@ -86,13 +85,13 @@ def get_taxi_analyst_agent() -> Any:
         `.stream()` interfaces.
 
     Raises:
-        AgentConfigError: If OPENAI_API_KEY is not set in the environment.
+        AgentConfigError: If GOOGLE_API_KEY is not set in the environment.
     """
     api_key = os.getenv("GOOGLE_API_KEY", "")
     if not api_key:
         raise AgentConfigError(
-            "GOOGLE_API_KEY is not configured. "
-            "Get a free key at https://aistudio.google.com/app/apikey and add it to the .env file: GOOGLE_API_KEY=AIza..."
+            "GOOGLE_API_KEY is not configured. Get a free key at "
+            "https://aistudio.google.com/app/apikey and add it to the .env file."
         )
 
     llm = ChatGoogleGenerativeAI(

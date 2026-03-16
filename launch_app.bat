@@ -48,7 +48,7 @@ echo ------------------------------------------------------------
 echo.
 
 :: Run Streamlit
-uv run streamlit run app.py
+uv run streamlit run src/app/main.py
 
 :: If the user stops Streamlit, give them a chance to read the exit message
 echo.

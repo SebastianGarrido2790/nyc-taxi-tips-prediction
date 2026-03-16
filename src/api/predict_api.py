@@ -13,16 +13,22 @@ import joblib
 import pandas as pd
 from fastapi import APIRouter, FastAPI, HTTPException
 
+from src.config.configuration import ConfigurationManager
 from src.entity.api_entity import PredictRequest, PredictResponse
 from src.utils.feature_utils import encode_cyclical
 from src.utils.logger import get_logger
 from src.utils.model_utils import get_feature_importances
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, headline="API: Predict")
+
+# Initialize Configuration Manager
+config_manager = ConfigurationManager()
+predict_config = config_manager.get_model_trainer_config()
+fare_constants = config_manager.get_fare_constants()
 
 # Global variable to store the loaded model
 MODEL_REGISTRY = {}
-MODEL_DIR = Path("artifacts/model_trainer")
+MODEL_DIR = Path(predict_config.root_dir)
 
 
 @asynccontextmanager
@@ -98,10 +104,10 @@ def _preprocess_request(req: PredictRequest) -> dict:
         - req.airport_fee
         - req.congestion_surcharge
         - req.tolls_amount,
-        "extra": 0.0,
-        "mta_tax": 0.5,
+        "extra": fare_constants.get("extra", 0.0),
+        "mta_tax": fare_constants.get("mta_tax", 0.5),
         "tolls_amount": float(req.tolls_amount),
-        "improvement_surcharge": 0.3,
+        "improvement_surcharge": fare_constants.get("improvement_surcharge", 0.3),
         "total_amount": float(req.total_amount),
         "congestion_surcharge": float(req.congestion_surcharge),
         "Airport_fee": float(req.airport_fee),

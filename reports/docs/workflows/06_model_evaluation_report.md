@@ -10,15 +10,15 @@ This stage ensures the model performs reliably before it influences any business
 ## 2. Architecture
 
 The pipeline uses two specific components orchestrated by `stage_06_model_evaluation.py`:
-*   **Evaluator (`src/components/model_evaluation.py`)**: Responsible for calculating MAE, MSE, and R² on the test set and logging these facts to the MLflow tracking server.
-*   **Predictor (`src/components/predict_model.py`)**: The batch loader that ingests incoming trip records, applies the frozen model, and persists predictions to the local filesystem (simulating a Data Warehouse load).
+*   **Evaluator (`src/components/model_evaluation.py`)**: Responsible for calculating MAE, MSE, and R² on the test set (using dynamically loaded schema targets) and logging these facts to the MLflow tracking server.
+*   **Predictor (`src/components/predict_model.py`)**: The batch loader that uses a dedicated `PredictModelConfig` to ingest trip records, apply the frozen model, and persist predictions.
 
 ### Workflow Diagram
 
 ```mermaid
 flowchart TD
     subgraph Storage [Artifacts Registry]
-        A[test.parquet] 
+        A[test.parquet]
         B[model.joblib]
     end
 
@@ -40,13 +40,13 @@ flowchart TD
 ## 3. Key Implementation Details
 
 ### 3.1. Held-Out Test Set Integrity
-The system strictly enforces the temporal data split design. The model selection during the previous stage (Trainer) optimized against `val.parquet`. This stage exclusively uses `test.parquet`. This prevents "look-ahead bias" and ensures the metrics reported here are a faithful representation of how the model will perform tomorrow.
+The system strictly enforces the temporal data split design. The model selection during the previous stage (Trainer) optimized against `val.parquet`. This stage exclusively uses `test.parquet`. This prevents "look-ahead bias" and ensures the metrics reported here are a faithful representation of how the model will perform tomorrow. **Target Identification** is handled dynamically via `ConfigurationManager`, ensuring that if the business goal shifts (e.g., to predict `fare_amount`), the evaluation logic adapts automatically.
 
 ### 3.2. Decoupled Inference (FTI Pattern)
 As dictated by the architectural requirements, the inference prediction logic (`PredictModel`) is completely decoupled from the data engineering and training phases. In a live production environment, this module simply wakes up alongside a cron job or an Airflow trigger, fetches the latest incoming trip parameters, loads the registered artifact from MLflow or local storage, and pushes the outputs to the business layers.
 
 ### 3.3. Production MLflow Model Registry Loading
-While the current simulation can load the model from the local disk path (`artifacts/model_trainer/model.joblib`), a true production environment leverages the **MLflow Model Registry**. 
+While the current simulation can load the model from the local disk path (`artifacts/model_trainer/model.joblib`), a true production environment leverages the **MLflow Model Registry**.
 
 To seamlessly fetch the latest registered production "Champion" model via MLflow (`nyc-taxi-tips-champion`), you can use the following approach without needing hardcoded paths:
 
