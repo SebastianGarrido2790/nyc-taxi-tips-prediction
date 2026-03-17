@@ -27,11 +27,11 @@ The **NYC Taxi Tips Prediction System** is a **well-structured portfolio project
 |:---|:---|
 | **FTI Pattern** | Clear 6-stage DVC pipeline (Ingestion → Validation → Transformation → Feature Engineering → Training → Evaluation) with explicit artifact handoffs between each stage |
 | **Brain vs. Brawn** | Agent reasons via LangGraph (`src/agents/`); the deterministic tool (`src/tools/taxi_prediction_tool.py`) handles all HTTP execution and Pydantic validation — clean separation |
-| **No Naked Prompts (UPDATED)** | System prompt centralized and versioned in [prompts.py](src\agents\prompts.py) (`v1.2`), separated from agent execution logic |
+| **No Naked Prompts (UPDATED)** | System prompt centralized and versioned in [prompts.py](../../../src/agents/prompts.py) (`v1.2`), separated from agent execution logic |
 | **Config Separation** | Three-tier YAML config (`config.yaml` for paths, `params.yaml` for hyperparameters, `schema.yaml` for data contracts) |
-| **Pydantic Config Entities (UPDATED)** | Configuration entities in [config_entity.py](src\entity\config_entity.py) use `BaseModel` with `ConfigDict(extra="forbid")` — strict validation at construction time |
+| **Pydantic Config Entities (UPDATED)** | Configuration entities in [config_entity.py](../../../src/entity/config_entity.py) use `BaseModel` with `ConfigDict(extra="forbid")` — strict validation at construction time |
 | **Modular Pipeline** | Each stage has its own component class, pipeline script, and configuration entity — clean Conductor/Worker separation of concerns |
-| **Environment-Aware MLflow** | [mlflow_config.py](src\utils\mlflow_config.py) implements a 3-level priority chain (env var → env-based default → YAML fallback) with production runtime guard |
+| **Environment-Aware MLflow** | [mlflow_config.py](../../../src/utils/mlflow_config.py) implements a 3-level priority chain (env var → env-based default → YAML fallback) with production runtime guard |
 | **Modular Streamlit App (UPDATED)** | The dashboard has been fully refactored from a 481-line monolith into `src/app/` with distinct `main.py`, `styles.py`, `data_loaders.py`, and `pages/` — separation of concerns is now complete |
 
 ### 1.2 Agentic Layer
@@ -93,7 +93,7 @@ The **NYC Taxi Tips Prediction System** is a **well-structured portfolio project
 
 ### 2.1 ~~CRITICAL: Untyped `dict` Fields in Pydantic Config Entities~~ ✅ ADDRESSED (v1.1)
 
-> **UPDATE (v1.1):** All five bare `dict` fields in [config_entity.py](src\entity\config_entity.py) have been given explicit type parameters. `ConfigDict(extra="forbid")` has also been applied to all entities, enforcing strict schema validation at construction time and rejecting any undeclared YAML keys immediately.
+> **UPDATE (v1.1):** All five bare `dict` fields in [config_entity.py](../../../src/entity/config_entity.py) have been given explicit type parameters. `ConfigDict(extra="forbid")` has also been applied to all entities, enforcing strict schema validation at construction time and rejecting any undeclared YAML keys immediately.
 >
 > - `all_schema: dict` → `dict[str, Any]`
 > - `all_params: dict` → `dict[str, dict[str, Any]]`
@@ -103,12 +103,12 @@ The **NYC Taxi Tips Prediction System** is a **well-structured portfolio project
 > *(Original gap details preserved below for history)*
 
 > [!CAUTION]
-> Five `dict` fields in [config_entity.py](src\entity\config_entity.py) are declared as bare `dict` without type parameters. This violates **Rule 2.3** (No untyped dictionaries) and completely undermines the type safety that Pydantic entities are supposed to provide.
+> Five `dict` fields in [config_entity.py](../../../src/entity/config_entity.py) are declared as bare `dict` without type parameters. This violates **Rule 2.3** (No untyped dictionaries) and completely undermines the type safety that Pydantic entities are supposed to provide.
 
 | Entity | Field | Current | Should Be |
 |:---|:---|:---|:---|
-| `DataIngestionConfig` | `all_schema` | `dict` | `dict[str, Any]` or a typed `SchemaConfig` model |
-| `DataValidationConfig` | `all_schema` | `dict` | `dict[str, Any]` or a typed `SchemaConfig` model |
+| `DataIngestionConfig` | `all_schema` | `dict` | `dict[str, Any]` |
+| `DataValidationConfig` | `all_schema` | `dict` | `dict[str, Any]` |
 | `ModelTrainerConfig` | `all_params` | `dict` | `dict[str, dict[str, Any]]` |
 | `ModelTrainerConfig` | `selection_metrics` | `dict` | `dict[str, float]` |
 | `ModelEvaluationConfig` | `all_params` | `dict` | `dict[str, dict[str, Any]]` |
@@ -170,11 +170,11 @@ The **NYC Taxi Tips Prediction System** is a **well-structured portfolio project
 
 | Location | Issue |
 |:---|:---|
-| [model_trainer.py:67](src\components\model_trainer.py#L67) | `target = "tip_amount"` hardcoded — should come from `schema.yaml` `TARGET_COLUMN.name` |
-| [model_evaluation.py:52](src\components\model_evaluation.py#L52) | `target = "tip_amount"` duplicated hardcoded |
-| [data_transformation.py:98-101](src\components\data_transformation.py#L98-L101) | Filter thresholds (`0.5`, `100`, `3.70`, `1000`) are magic numbers |
-| [predict_api.py:96-98](src\api\predict_api.py#L96-L98) | `extra: 0.0`, `mta_tax: 0.5`, `improvement_surcharge: 0.3` are hardcoded NYC-specific constants |
-| [feature_engineering.py:101-103](src\components\feature_engineering.py#L101-L103) | Temporal split boundaries (1–8, 9–10, 11–12) are hardcoded |
+| [model_trainer.py:67](../../../src/components/model_trainer.py#L67) | `target = "tip_amount"` hardcoded — should come from `schema.yaml` `TARGET_COLUMN.name` |
+| [model_evaluation.py:52](../../../src/components/model_evaluation.py#L52) | `target = "tip_amount"` duplicated hardcoded |
+| [data_transformation.py:98-101](../../../src/components/data_transformation.py#L98-L101) | Filter thresholds (`0.5`, `100`, `3.70`, `1000`) are magic numbers |
+| [predict_api.py:96-98](../../../src/api/predict_api.py#L96-L98) | `extra: 0.0`, `mta_tax: 0.5`, `improvement_surcharge: 0.3` are hardcoded NYC-specific constants |
+| [feature_engineering.py:101-103](../../../src/components/feature_engineering.py#L101-L103) | Temporal split boundaries (1–8, 9–10, 11–12) are hardcoded |
 
 **Recommendation:**
 1. Add `target_column: str` to `ModelTrainerConfig`, `ModelEvaluationConfig` entities and populate from `schema.yaml`.
@@ -197,7 +197,7 @@ DataCleaning:
 > *(Original gap details preserved below for history)*
 
 > [!IMPORTANT]
-> [model_trainer.py:24](src\components\model_trainer.py#L24) imports `from src.utils.common import logger` — using the module-level singleton logger from `common.py`. Every other component in the system uses `from src.utils.logger import get_logger; logger = get_logger(__name__)`.
+> [model_trainer.py:24](../../../src/components/model_trainer.py#L24) imports `from src.utils.common import logger` — using the module-level singleton logger from `common.py`. Every other component in the system uses `from src.utils.logger import get_logger; logger = get_logger(__name__)`.
 
 **Impact:** Log messages from `ModelTrainer` appear under the logger name `src.utils.common` instead of `src.components.model_trainer`, making log filtering and debugging harder.
 
@@ -249,7 +249,7 @@ DataCleaning:
 > *(Original gap details preserved below for history)*
 
 > [!WARNING]
-> The cyclical encoding in [feature_engineering.py](src\components\feature_engineering.py#L64-L82) uses Day-of-Week (1–7, shifted by -1 → 0–6) divided by 7, while [predict_api.py](src\api\predict_api.py#L78-L81) uses Day-of-Month (1–31) divided by 31. These are **different features**.
+> The cyclical encoding in [feature_engineering.py](../../../src/components/feature_engineering.py#L64-L82) uses Day-of-Week (1–7, shifted by -1 → 0–6) divided by 7, while [predict_api.py](../../../src/api/predict_api.py#L78-L81) uses Day-of-Month (1–31) divided by 31. These are **different features**.
 
 **Impact:** **Training-serving skew.** The model learned from day-of-week cyclical patterns but receives day-of-month patterns at inference time. This silently degrades prediction quality.
 
@@ -258,7 +258,7 @@ DataCleaning:
 ### 2.10 MEDIUM: `_preprocess_request()` Hardcodes Feature Order Instead of Using Model Metadata
 
 > [!IMPORTANT]
-> [predict_api.py](src\api\predict_api.py) dynamically aligns columns using `model.feature_names_in_`, which is good. However, the `_preprocess_request()` function hardcodes ALL feature names and default values — if the training pipeline adds or removes a feature, `predict_api.py` must be manually updated.
+> [predict_api.py](../../../src/api/predict_api.py) dynamically aligns columns using `model.feature_names_in_`, which is good. However, the `_preprocess_request()` function hardcodes ALL feature names and default values — if the training pipeline adds or removes a feature, `predict_api.py` must be manually updated.
 
 **Recommendation:** Generate a feature schema artifact during training (e.g., `artifacts/model_trainer/feature_schema.json`) and load it at API startup to auto-align the preprocessing. This eliminates manual synchronization between training and serving.
 
@@ -270,7 +270,7 @@ DataCleaning:
 >
 > *(Original gap details preserved below for history)*
 
-[taxi_prediction_tool.py:8](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/src/tools/taxi_prediction_tool.py#L8) used:
+[taxi_prediction_tool.py:8](../../../src/tools/taxi_prediction_tool.py#L8) used:
 ```python
 from typing import List, Dict, Any, Optional
 ```
@@ -285,7 +285,7 @@ Since the project requires Python ≥3.10, these were replaced with modern built
 >
 > *(Original gap details preserved below for history)*
 
-In [test_model_trainer.py:25](tests\unit\test_model_trainer.py#L25), the fixture creates a `ModelTrainerConfig` with `test_data_path=tmp_path / "test.parquet"` — but this field **does not exist** in the `ModelTrainerConfig` model. This only works because Pydantic v2's default `model_config` allows extra fields.
+In [test_model_trainer.py:25](../../../tests/unit/test_model_trainer.py#L25), the fixture creates a `ModelTrainerConfig` with `test_data_path=tmp_path / "test.parquet"` — but this field **does not exist** in the `ModelTrainerConfig` model. This only works because Pydantic v2's default `model_config` allows extra fields.
 
 ---
 
@@ -295,7 +295,7 @@ In [test_model_trainer.py:25](tests\unit\test_model_trainer.py#L25), the fixture
 >
 > *(Original gap details preserved below for history)*
 
-[predict_model.py:36-37](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/src/components/predict_model.py#L36-L37):
+[predict_model.py:36-37](../../../src/components/predict_model.py#L36-L37):
 ```python
 predictions_dir: str = "artifacts/predictions",
 output_filename: str = "inference_results.csv",
@@ -307,7 +307,7 @@ These default paths should come from `config.yaml` through the `ConfigurationMan
 
 ### 2.14 MEDIUM: `read_yaml()` Returns Raw `dict` — No Validation
 
-[common.py:21](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/src/utils/common.py#L21) `read_yaml()` returns a raw `dict`. The `ConfigurationManager` then accesses keys with bracket notation (`self.config["data_ingestion"]`). Any typo in a key name produces a runtime `KeyError` with no context.
+[common.py:21](../../../src/utils/common.py#L21) `read_yaml()` returns a raw `dict`. The `ConfigurationManager` then accesses keys with bracket notation (`self.config["data_ingestion"]`). Any typo in a key name produces a runtime `KeyError` with no context.
 
 **Impact:** The pipeline fails deep inside execution instead of at startup.
 
@@ -340,13 +340,13 @@ Parse `config.yaml` directly into `AppConfig` — any missing key raises a clear
 >
 > *(Original gap details preserved below for history)*
 
-[docker-compose.yml:1](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/docker-compose.yml#L1) declared `version: "3.8"`. This key has been [deprecated since Docker Compose v2](https://docs.docker.com/compose/releases/migrate/) and is ignored.
+[docker-compose.yml:1](../../../docker-compose.yml#L1) declared `version: "3.8"`. This key has been [deprecated since Docker Compose v2](https://docs.docker.com/compose/releases/migrate/) and is ignored.
 
 ---
 
 ### 2.17 LOW: Root `Dockerfile` Is a Stub
 
-[Dockerfile](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/Dockerfile) uses `FROM scratch` — it's intentionally a no-op stub with a documentation header redirecting to the specialized Dockerfiles. While the intent is clear, having a file named `Dockerfile` that does nothing can confuse CI/CD tools and colleagues.
+[Dockerfile](../../../Dockerfile) uses `FROM scratch` — it's intentionally a no-op stub with a documentation header redirecting to the specialized Dockerfiles. While the intent is clear, having a file named `Dockerfile` that does nothing can confuse CI/CD tools and colleagues.
 
 **Recommendation:** Either:
 1. Rename to `Dockerfile.IGNORE` or delete entirely, OR
@@ -384,7 +384,7 @@ Parse `config.yaml` directly into `AppConfig` — any missing key raises a clear
 
 ### 2.20 LOW: `ModelEvaluationPipeline.__init__` Has Empty Body
 
-[stage_06_model_evaluation.py:25-27](file:///c:/Users/sebas/Desktop/nyc-taxi-tips-prediction/src/pipeline/stage_06_model_evaluation.py#L25-L27):
+[stage_06_model_evaluation.py:25-27](../../../src/pipeline/stage_06_model_evaluation.py#L25-L27):
 ```python
 def __init__(self):
     """Initializes the ModelEvaluation Pipeline."""
@@ -526,36 +526,40 @@ Following the [Model Cards for Model Reporting](https://arxiv.org/abs/1810.03993
 ## 5. Prioritized Action Plan
 
 > [!TIP]
-> Items marked ✅ have been fully completed. Remaining items are ordered by impact.
+> Items marked [x] have been fully completed. Remaining items are ordered by impact.
 
 ### Phase 1: Quick Wins ✅ COMPLETE
-1. ✅ Create `.env.example` (§2.3)
-2. ✅ Create `src/py.typed` (§2.15)
-3. ✅ Create `src/api/__init__.py` (§2.6)
-4. ✅ Fix logger import in `model_trainer.py` (§2.5)
-5. ✅ Replace legacy `typing` imports (§2.11)
-6. ✅ Remove `black` from dependencies (§2.19)
-7. ✅ Remove deprecated `version` from `docker-compose.yml` (§2.16)
+
+- [x] **Create `.env.example`** ([§2.3](#23-critical-missing-envexample-file))
+- [x] **Create `src/py.typed`** ([§2.15](#215-no-pytyped-marker))
+- [x] **Create `src/api/__init__.py`** ([§2.6](#26-high-missing-initpy-in-srcapi))
+- [x] **Fix logger import in `model_trainer.py`** ([§2.5](#25-high-inconsistent-logger-import-in-model_trainerpy))
+- [x] **Replace legacy `typing` imports** ([§2.11](#211-medium-legacy-typing-imports-in-taxi_prediction_toolpy))
+- [x] **Remove `black` from dependencies** ([§2.19](#219-low-black-listed-as-dev-dependency-alongside-ruff))
+- [x] **Remove deprecated `version` from `docker-compose.yml`** ([§2.16](#216-low-docker-composeyml-uses-deprecated-version-key))
 
 ### Phase 2: Type Safety & CI ✅ COMPLETE
-8. ✅ Add `[tool.pyright]` and `[tool.ruff]` to `pyproject.toml` (§2.2, §2.8)
-9. ✅ Add generic type parameters to all `dict` fields in entities (§2.1)
-10. ✅ Add `pytest-cov` + 65% coverage gate in CI (§2.7)
-11. ✅ Add `pyright` CI step in `lint.yml` (§2.2)
-12. ✅ Add `model_config = ConfigDict(extra="forbid")` to all entities (§2.12)
+
+- [x] **Add `[tool.pyright]` and `[tool.ruff]` to `pyproject.toml`** ([§2.2](#22-critical-no-pyright-configuration-or-ci-enforcement), [§2.8](#28-high-no-ruff-configuration-in-pyprojecttoml))
+- [x] **Add generic type parameters to all `dict` fields in entities** ([§2.1](#21-critical-untyped-dict-fields-in-pydantic-config-entities))
+- [x] **Add `pytest-cov` + 65% coverage gate in CI** ([§2.7](#27-high-no-pytest-cov-and-no-coverage-gate-in-ci))
+- [x] **Add `pyright` CI step in `lint.yml`** ([§2.2](#22-critical-no-pyright-configuration-or-ci-enforcement))
+- [x] **Add `model_config = ConfigDict(extra="forbid")` to all entities** ([§2.12](#212-medium-modeltrainerconfig-accepts-an-undeclared-field-test_data_path))
 
 ### Phase 3: Architecture Hardening ✅ COMPLETE
-13. ✅ Fix cyclical feature training-serving skew with `feature_utils.py` (§2.9)
-14. ✅ Add API versioning (`/v1/` router) (§3.4)
-15. ✅ Add `Makefile` (§3.1)
-16. ✅ Add `.pre-commit-config.yaml` (§3.2)
-17. ✅ Refactor `app.py` monolith into `src/app/` modular package (§2.21)
-18. ✅ Move all hardcoded target columns and magic numbers to config (§2.4, §2.13)
-19. ⬜ Create typed Pydantic models for YAML config (§2.14) — *remaining*
+
+- [x] **Fix cyclical feature training-serving skew with `feature_utils.py`** ([§2.9](#29-medium-cyclical-feature-encoding-mismatch-between-training-and-inference))
+- [x] **Add API versioning (`/v1/` router)** ([§3.4](#34-add-api-versioning))
+- [x] **Add `Makefile`** ([§3.1](#31-add-a-makefile-for-developer-experience))
+- [x] **Add `.pre-commit-config.yaml`** ([§3.2](#32-add-pre-commit-hooks))
+- [x] **Refactor `app.py` monolith into `src/app/` modular package** ([§2.21](#221-low-appy-is-a-481-line-monolith))
+- [x] **Move all hardcoded target columns and magic numbers to config** ([§2.4](#24-high-hardcoded-target-column--magic-numbers), [§2.13](#213-medium-predict_modelpy-uses-hardcoded-default-paths))
+- [ ] **Create typed Pydantic models for YAML config** ([§2.14](#214-medium-read_yaml-returns-raw-dict--no-validation)) — *remaining*
 
 ### Phase 4: Portfolio Differentiation
-20. ⬜ Add Great Expectations data validation (§3.3)
-21. ⬜ Add structured JSON logging (§3.5)
-22. ⬜ Add OpenTelemetry tracing (§3.6)
-23. ⬜ Add LLM-as-a-Judge agent evals (§3.7)
-24. ⬜ Add `CONTRIBUTING.md` and Model Card (§3.8, §3.10)
+
+- [ ] **Add Great Expectations data validation** ([§3.3](#33-add-great-expectations-gx-data-validation-rule-21))
+- [ ] **Add structured JSON logging** ([§3.5](#35-add-structured-json-logging-for-production))
+- [ ] **Add OpenTelemetry tracing** ([§3.6](#36-add-opentelemetry-tracing-rule-42))
+- [ ] **Add LLM-as-a-Judge agent evals** ([§3.7](#37-add-llm-as-a-judge-evaluation-framework))
+- [ ] **Add `CONTRIBUTING.md` and Model Card** ([§3.8](#38-add-a-contributingmd), [§3.10](#310-add-model-card-reportsdocsevaluationsmodel_cardmd))
